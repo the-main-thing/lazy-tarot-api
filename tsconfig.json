@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/typescript-config/api.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "exclude": ["dist", "build", "node_modules"]
+}
