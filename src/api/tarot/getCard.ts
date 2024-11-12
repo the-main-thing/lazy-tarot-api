@@ -1,8 +1,8 @@
-import { q } from 'groqd'
+import type { SanityClient } from '@sanity/client'
 
-import { cardContentQueryObject } from './cardContentQueryObject'
-import { translateCard } from './translateCard'
-import { Context } from '../../createContext'
+import type { CardContentQueryObject } from './cardContentQueryObject.js'
+import { translateCard } from './translateCard.js'
+import type { Context } from '../../createContext.js'
 
 type Params = {
 	language: string | undefined
@@ -11,26 +11,27 @@ type Params = {
 }
 
 export const queryContent = async (
-	{ runQuery }: Context['sanity'],
+	client: SanityClient,
 	id: Params['id'],
-) => {
+): Promise<[data: CardContentQueryObject | null, error: null] | [data: null, error: unknown]> => {
 	try {
-		const data = await runQuery(
-			q('*')
-				.filter(`_type == "tarotCard" && _id == "${id}"`)
-				.grab(cardContentQueryObject)
-				.slice(0),
+			const data = await client.fetch<CardContentQueryObject>(
+			`*[_type=="tarotCard" && _id=="${id}"][0]`
 		)
 
-		return data as typeof data | null
+		return [data, null]
+
 	} catch (error) {
-		console.error('SANITY_ERROR', error)
-		throw error
+		return [null, error]
 	}
 }
 
 export const getCardById = async ({ language, id, context }: Params) => {
-	const card = await queryContent(context.sanity, id)
+	const [card, error] = await queryContent(context.sanity.client, id)
+
+	if (error) {
+		console.error(new Date(), 'Sanity query error', error)
+	}
 
 	return card
 		? translateCard({

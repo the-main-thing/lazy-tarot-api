@@ -1,23 +1,19 @@
-import { q } from 'groqd'
-import { schemas } from '../sanity/schemas'
+import type { I18nBlock, I18n, Image } from '../sanity/schemas.js'
 
-const descriptionSchema = q.object({
-	fullDescription: schemas.i18nBlock,
-	shortDescription: schemas.i18n,
-})
-
-const variantSchema = q.object({
-	title: schemas.i18n,
-	description: descriptionSchema,
-})
-
-export const cardContentQueryObject = {
-	_id: q.string(),
-	title: schemas.i18n,
-	regular: variantSchema,
-	upsideDown: variantSchema,
-	image: schemas.image,
+export type Description = {
+	fullDescription: I18nBlock,
+	shortDescription: I18n,
 }
 
-/* @typegen card */
-export const card = cardContentQueryObject
+export type Variant = {
+	title: I18n,
+	description: Description,
+}
+
+export type CardContentQueryObject = {
+	_id: string,
+	title: I18n,
+	regular: Variant,
+	upsideDown: Variant,
+	image: Image,
+}

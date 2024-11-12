@@ -1,7 +1,7 @@
-import { router } from './trpc'
+import { router } from './trpc.js'
 
-import { getCardById, getCardsSet, getRandomCard } from './routes/tarot'
-import { getAllPagesData } from './routes/pages'
+import { getCardById, getCardsSet, getRandomCard } from './routes/tarot.js'
+import { getAllPagesData } from './routes/pages.js'
 
 export const appRouter = router({
 	public: {

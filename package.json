@@ -8,26 +8,29 @@
   "scripts": {
     "deploy": "npx wrangler deploy",
     "dev": "npx wrangler dev",
-    "build": "vite build"
+    "eslint-fix": "eslint src/**"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@trpc/server": "^11.0.0-rc.553",
-    "zod": "^3.22.4",
     "@sanity/client": "^6.15.3",
     "@sanity/image-url": "^1.0.2",
+    "@trpc/server": "^11.0.0-rc.553",
     "accept-language-parser": "^1.5.0",
+    "eslint": "8",
     "groqd": "^0.15.10",
+    "zod": "^3.22.4",
     "zod-to-ts": "^1.2.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240312.0",
+    "@types/accept-language-parser": "^1.5.6",
+    "@types/bun": "^1.1.13",
+    "@types/node": "^20.11.25",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
     "prettier": "^3.2.5",
     "typescript": "^5.6.2",
-    "wrangler": "^3.32.0",
-    "@types/accept-language-parser": "^1.5.6",
-    "@types/node": "^20.11.25"
+    "wrangler": "^3.32.0"
   }
 }

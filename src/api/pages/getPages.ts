@@ -1,89 +1,121 @@
-import { BREAKPOINTS } from '@repo/core'
+import { getTranslated } from '../sanity/getTranslated.js'
+import { getImagesSet } from '../sanity/getImagesSet.js'
 
-import type { Context } from '../types'
+import { BREAKPOINTS } from '../constants.js'
+
+import type { Context } from '../../createContext.js'
+import type { I18n, I18nBlock, Image } from '../sanity/schemas.js'
 
 type Params = {
 	language?: string
-	breakpoints: Record<number, number>
-	context: Context
+	context: {
+		sanity: {
+			client: Context['sanity']['client']
+		}
+	}
 }
 
-const getSanityContent = async ({
-	q,
-	schemas,
-	runQuery,
-}: Params['context']['sanity']) => {
-	const query = q('').grab({
-		rootLayoutContent: q('*')
-			.filterByType('rootLayout')
-			.grab({
-				_id: q.string(),
-				manifestoLinkTitle: schemas.i18n,
-				tarotReadingLinkTitle: schemas.i18n,
-				ogData: q.array(
-					q.object({
-						property: q.string(),
-						content: schemas.i18n,
-					})
-				),
-			})
-			.slice(0),
-		indexPageContent: q('*')
-			.filterByType('indexPage')
-			.grab({
-				_id: q.string(),
-				title: schemas.i18n,
-				description: schemas.i18n,
-				headerTitle: schemas.i18nBlock,
-				headerDescription: schemas.i18nBlock,
-			})
-			.slice(0),
-		tarotReadingPageContent: q('*')
-			.filterByType('tarotReadingPage')
-			.grab({
-				_id: q.string(),
-				headerTitle: schemas.i18nBlock,
-				pickedCardTitle: schemas.i18nBlock,
-				formDescription: schemas.i18nBlock,
-				cardDescriptionHeaderText: schemas.i18n,
-				submitButtonLabel: schemas.i18n,
-				cardBackImage: schemas.image,
-				pickNextCardButtonLabel: schemas.i18n,
-			})
-			.slice(0),
-		manifestoPageContent: q('*')
-			.filter('_type == "manifestoPage"')
-			.grab({
-				_id: q.string(),
-				content: schemas.i18nBlock,
-				header: schemas.i18nBlock,
-				headerImage: schemas.image,
-				contentImage: schemas.image,
-			})
-			.slice(0),
-		aboutUsPageContent: q('*')
-			.filter('_type == "aboutUsPage"')
-			.grab({
-				_id: q.string(),
-				header: q.object({
-					teamTitle: schemas.i18n,
-					pageTitle: schemas.i18n,
-				}),
-				image: schemas.image,
-				social: q.array(
-					q.object({
-						title: schemas.i18n,
-						urlTitle: schemas.i18n,
-						url: q.string(),
-					})
-				),
-			})
-			.slice(0),
-	})
+type SanityClient = Context['sanity']['client']
 
-	const content = await runQuery(query)
+async function errorAsValue<TValue>(promise: Promise<TValue>): Promise<[NonNullable<TValue>, null] | [null, unknown]> {
+	try {
+		const value = await promise
+		if (!value) {
+			throw new Error('No data returned from cms')
+		}
+		return [value, null]
+	} catch (error) {
+		return [null, error]
+	}
+}
 
-	return content
+function queryRootLayoutContent(client: SanityClient) {
+	return client.fetch<{
+		_id: string
+		manifestoLinkTitle: I18n
+		tarotReadingLinkTitle: I18n
+		ogData: Array<{
+			property: string
+			content: I18n
+		}>
+	}>('*[_type=="rootLayout"][0]')
+}
+
+async function queryIndexPageContent(client: SanityClient) {
+	return client.fetch<{
+		_id: string,
+		title: I18n,
+		description: I18n,
+		headerTitle: I18nBlock,
+		headerDescription: I18nBlock,
+	}>('*[_type=="indexPage"][0]')
+}
+
+async function queryTarotReadingPageContent(client: SanityClient) {
+	return client.fetch<{
+		_id: string,
+		headerTitle: I18nBlock,
+		pickedCardTitle: I18nBlock,
+		formDescription: I18nBlock,
+		cardDescriptionHeaderText: I18n,
+		submitButtonLabel: I18n,
+		cardBackImage: Image,
+		pickNextCardButtonLabel: I18n,
+	}>('*[_type=="tarotReadingPage"][0]')
+
+}
+
+async function queryManifestoPageContent(client: SanityClient) {
+	return client.fetch<{
+		_id: string,
+		content: I18nBlock,
+		header: I18nBlock,
+		headerImage: Image,
+		contentImage: Image,
+	}>('*[_type=="manifestoPage"][0]')
+}
+
+async function queryAboutUsPageContent(client: SanityClient) {
+	return client.fetch<{
+		_id: string,
+		header: {
+			teamTitle: I18n,
+			pageTitle: I18n,
+		},
+		image: Image,
+		social: Array<
+			{
+				title: I18n,
+				urlTitle: I18n,
+				url: string,
+			}
+		>,
+	}>('*[_type=="aboutUsPage"][0]')
+}
+
+
+const getSanityContent = async (client: SanityClient) => {
+	const [
+		[rootLayoutContent, rootLayoutError],
+		[indexPageContent, indexPageError],
+		[tarotReadingPageContent, tarotReadingPageError],
+		[manifestoPageContent, manifestoPageError],
+		[aboutUsPageContent, aboutUsPageError]
+	] = await Promise.all([
+		errorAsValue(queryRootLayoutContent(client)),
+		errorAsValue(queryIndexPageContent(client)),
+		errorAsValue(queryTarotReadingPageContent(client)),
+		errorAsValue(queryManifestoPageContent(client)),
+		errorAsValue(queryAboutUsPageContent(client)),
+	])
+
+	if (!rootLayoutContent || !indexPageContent || !tarotReadingPageContent || !manifestoPageContent || !aboutUsPageContent) {
+		throw (rootLayoutError as Error) || (indexPageError as Error) || (tarotReadingPageError as Error) || (manifestoPageError as Error) || (aboutUsPageError as Error) || new Error('PANIC: Unexpected state: no data and no errors')
+	}
+
+	return {
+		rootLayoutContent, indexPageContent, tarotReadingPageContent, manifestoPageContent, aboutUsPageContent
+	}
 }
 
 const translate = (
@@ -96,7 +128,8 @@ const translate = (
 		aboutUsPageContent,
 	}: Awaited<ReturnType<typeof getSanityContent>>
 ) => {
-	const { client, getTranslated, getImagesSet } = context.sanity
+
+	const client = context.sanity.client
 
 	return {
 		rootLayoutContent: {
@@ -203,8 +236,8 @@ const translate = (
 	}
 }
 
-export const getPages = (props: Params) => {
-	return getSanityContent(props.context.sanity).then(content =>
+export function getPages(props: Params) {
+	return getSanityContent(props.context.sanity.client).then(content =>
 		translate(props, content)
 	)
 }

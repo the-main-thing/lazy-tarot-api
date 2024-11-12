@@ -1,5 +1,5 @@
-import { createRequestHandler } from './createRequestHandler'
-import { envSchema, type Env } from './env'
+import { createRequestHandler } from './createRequestHandler.js'
+import { envSchema, type Env } from './env.js'
 
 export default {
   fetch: async (

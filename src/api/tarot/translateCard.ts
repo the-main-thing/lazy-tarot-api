@@ -1,14 +1,20 @@
-import { BREAKPOINTS } from '@repo/core'
-
-import { getTranslated } from '../sanity/getTranslated'
-import { getImagesSet } from '../sanity/getImagesSet'
-import type { Context } from '../../createContext'
+import { getTranslated } from '../sanity/getTranslated.js'
+import { getImagesSet } from '../sanity/getImagesSet.js'
+import type { Context } from '../../createContext.js'
+import { BREAKPOINTS } from '../constants.js'
+import type { CardContentQueryObject } from './cardContentQueryObject.js'
 
 type Props = {
 	language: string | undefined
-	card: Card
-	context: Context
+	card: CardContentQueryObject
+	context: {
+		sanity: {
+			client: Context['sanity']['client']
+		}
+	}
 }
+
+
 
 export const translateCard = ({ language, card, context }: Props) => {
 	return {

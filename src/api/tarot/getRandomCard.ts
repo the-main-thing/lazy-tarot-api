@@ -1,8 +1,9 @@
-import { pickRandomCard } from '@repo/core'
-import type { Context } from '../types'
+import { pickRandomCard } from '../utils/pickRandomCard.js'
+import type { Context } from '../../createContext.js'
 
-import { translateCard } from './translateCard.server'
-import { queryContent } from './getCard'
+import { translateCard } from './translateCard.js'
+import { queryContent } from './getCard.js'
+import type { CardContentQueryObject } from './cardContentQueryObject.js'
 
 type Params = {
 	language: string | undefined
@@ -13,18 +14,30 @@ type Params = {
 	context: Context
 }
 
+async function queryIds(
+	client: Context['sanity']['client'],
+): Promise<[data: Array<CardContentQueryObject>, error: null] | [data: null, error: unknown]> {
+	try {
+		const data = await client.fetch<Array<CardContentQueryObject>>(
+			`*[_type=="tarotCard"]._id`
+		)
+
+		return [data || [], null]
+
+	} catch (error) {
+		return [null, error]
+	}
+}
+
 const queryAndPickACard = async ({
 	context,
 	prevPickedCards,
 }: Pick<Params, 'context' | 'prevPickedCards'>) => {
 	try {
-		const { runQuery, q } = context.sanity
-		const cardsIds = await runQuery(
-			q('*').filter(`_type == "tarotCard"`).grab({
-				_id: q.string(),
-			})
-		)
-		if (!cardsIds || !cardsIds.length) {
+
+		const [cardsIds, errorGettingCardsIds] = await queryIds(context.sanity.client)
+		if (!cardsIds || !cardsIds.length || errorGettingCardsIds) {
+			console.error(new Date(), 'Error getting cards ids', errorGettingCardsIds)
 			return null
 		}
 
@@ -39,9 +52,15 @@ const queryAndPickACard = async ({
 			id = output.id
 		}
 
-		const card = await queryContent(context.sanity, id)
+		const [card, errorGettingCard] = await queryContent(context.sanity.client, id)
+		if (!card || errorGettingCard) {
+			console.error(new Date(), 'Error getting card by id', errorGettingCard)
+			if (!errorGettingCard) {
+				throw new Error('Picked id from list of cards, but getting a card by id returns null without error')
+			}
+		}
 
-		return card as typeof card | null
+		return card
 	} catch (error) {
 		console.error('SANITY_ERROR', error)
 		throw error

@@ -1,5 +1,5 @@
-import { log } from '../utils/log'
-import { defaultLanguage } from './constants'
+import { log } from '../utils/log.js'
+import { defaultLanguage } from './constants.js'
 
 export function getTranslated<T>(
 	i18n: Array<{

@@ -1,17 +1,20 @@
-export const isNumber = (value: unknown): value is number =>
-	Number.isFinite(value)
-export const isInteger = (value: unknown): value is number =>
-	Number.isInteger(value)
-export const isFloat = (value: unknown): value is number =>
-	isNumber(value) && !isInteger(value)
+export function isNumber(value: unknown): value is number {
+	return Number.isFinite(value)
+}
+export function isInteger(value: unknown): value is number {
+	return Number.isInteger(value)
+}
+export function isFloat(value: unknown): value is number {
+	return isNumber(value) && !isInteger(value)
+}
 
-export const parseNumber = <TFallback>(
+export function parseNumber<TFallback>(
 	value: unknown,
 	fallback?: TFallback,
 ):
 	| number
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	| (TFallback extends () => any ? ReturnType<TFallback> : TFallback) => {
+	| (TFallback extends () => any ? ReturnType<TFallback> : TFallback) {
 	if (isNumber(value)) {
 		return value
 	}
@@ -26,4 +29,11 @@ export const parseNumber = <TFallback>(
 	}
 
 	return fallback as never
+}
+/**
+ * @param min number minimum value (inclusive)
+ * @param max number maximum value (inclusive)
+ */
+export function randInt(min: number, max: number) {
+	return Math.floor(Math.random() * (max - min + 1)) + min
 }

@@ -1,9 +1,9 @@
 import type { SanityClient } from '@sanity/client'
 
-import { parseNumber } from '../utils/number'
+import { parseNumber } from '../utils/number.js'
 
-import type { schemas } from './schemas'
-import { urlFor } from './urlFor'
+import type { Image } from './schemas.js'
+import { urlFor } from './urlFor.js'
 
 // https://cdn.sanity.io/images/<project id>/<dataset name>/<asset name>-<original width>x<original height>.<original file format>
 const getDimentions = (src: string) => {
@@ -34,7 +34,7 @@ export const getImagesSet = <TBreakpoints extends Record<number, number>>({
 	client: SanityClient
 	format?: 'png' | 'jpg'
 	breakpoints: TBreakpoints
-	image: ReturnType<(typeof schemas)['image']['parse']>
+	image: Image
 }) => {
 	let dimentions = null as null | [width: number, height: number]
 	const entries = Object.entries(breakpoints).map(([breakPoint, width]) => {
