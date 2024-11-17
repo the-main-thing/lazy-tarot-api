@@ -1,11 +1,13 @@
-import type { SanityClient } from '@sanity/client' 
+import type { SanityClient } from '@sanity/client'
 
-import { createClient } from './api/sanity/sanityClient.js'
+import { createClient } from './cms/sanity/sanityClient.js'
 
 
-export function createContext(sanityStudioProjectId: string): Context {
+export function createContext(sanityStudioProjectId: string, request: Request): Context {
 	const sanityClient = createClient(sanityStudioProjectId)
+
 	return {
+		request,
 		sanity: {
 			client: sanityClient,
 		},
@@ -13,6 +15,7 @@ export function createContext(sanityStudioProjectId: string): Context {
 }
 
 export interface Context {
+	request: Request,
 	sanity: {
 		client: SanityClient
 	}

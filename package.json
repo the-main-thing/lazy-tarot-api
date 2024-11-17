@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "types": "index.d.ts",
-  "main": "index.d.ts",
+  "main": "./src/server.bun.ts",
   "scripts": {
     "deploy": "npx wrangler deploy",
     "dev": "npx wrangler dev",
-    "eslint-fix": "eslint src/**"
+    "eslint-fix": "eslint src/**",
+    "migrations-generate": "drizzle-kit generate",
+    "migrations-migrate": "drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
@@ -18,19 +19,20 @@
     "@sanity/image-url": "^1.0.2",
     "@trpc/server": "^11.0.0-rc.553",
     "accept-language-parser": "^1.5.0",
-    "eslint": "8",
     "groqd": "^0.15.10",
     "zod": "^3.22.4",
     "zod-to-ts": "^1.2.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240312.0",
     "@types/accept-language-parser": "^1.5.6",
     "@types/bun": "^1.1.13",
     "@types/node": "^20.11.25",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "ajv": "^8.17.1",
+    "eslint": "^9.14.0",
     "prettier": "^3.2.5",
     "typescript": "^5.6.2",
-    "wrangler": "^3.32.0"
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.3.0"
   }
 }

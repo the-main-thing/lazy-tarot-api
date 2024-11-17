@@ -1,3 +1,0 @@
-name = "guess-trpc"
-main = "src/cf-worker.ts"
-compatibility_date = "2024-03-04"

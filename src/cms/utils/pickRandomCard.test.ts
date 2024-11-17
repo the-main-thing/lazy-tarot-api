@@ -43,9 +43,9 @@ try {
 			console.log('Error:', error)
 			process.exit(1)
 		}
-		results[result.id].picked++
-		results[result.id].upsideDown += result.upsideDown ? 1 : 0
-		results[result.id].index = i
+		results[result.id]!.picked++
+		results[result.id]!.upsideDown += result.upsideDown ? 1 : 0
+		results[result.id]!.index = i
 		prevPickedCards = result.prevPickedCards
 		if (lastUpsideDown === result.upsideDown) {
 			consecutiveUpsideDowns[consecutiveUpsideDownsIndex] =

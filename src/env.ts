@@ -1,10 +1,13 @@
 import { z } from 'zod'
 
-export const envSchema = z.object({
+export const env = z.object({
 	SANITY_STUDIO_PROJECT_ID: z.string(),
 	LAZY_TAROT_API_KEY: z.string(),
-})
+	CMS_SQLITE_FILENAME: z.string(),
+	PORT: z.string().optional(),
+}).parse(process.env)
 
-export type Env = z.infer<typeof envSchema>
+
+export type Env = typeof env
 
 export type EnvKey = keyof Env
