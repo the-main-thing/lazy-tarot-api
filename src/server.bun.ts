@@ -15,5 +15,7 @@ const run = () => {
 	})
 }
 
-run()
+const server = run()
+
+console.log('Server running on port', server.port)
 

@@ -40,7 +40,7 @@ try {
 			getIdFromSetItem: ({ id }) => id,
 		})
 		if (error) {
-			console.log('Error:', error)
+			console.error('Error:', error)
 			process.exit(1)
 		}
 		results[result.id]!.picked++

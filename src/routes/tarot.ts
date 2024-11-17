@@ -31,7 +31,7 @@ export const getRandomCard = async (context: Context) => {
 		const body = await context.request.json()
 		const { prevPickedCards } = getRandomCardInputSchema.parse(body) satisfies GetRandomCardInput['body']
 
-		const data = sanityGetRandomCard({
+		const data = await sanityGetRandomCard({
 			language,
 			prevPickedCards: prevPickedCards.slice(-90),
 			context,
@@ -45,8 +45,10 @@ export const getRandomCard = async (context: Context) => {
 			log.error('getRandomCard', error)
 			return new Response('Internal error', { status: 500 })
 		}
+
 		return response
 	} catch (error) {
+		log.error('getRandomCard\n', error)
 		return new Response('', {
 			status: 400
 		})
@@ -89,7 +91,7 @@ export const getCardById = async (
 		return notFoundResponse()
 	}
 	const url = new URL(context.request.url)
-	const [_path, id, language, ...rest] = url.pathname.split('/').filter(Boolean)
+	const [_path, language, id, ...rest] = url.pathname.split('/').filter(Boolean)
 	if (rest.length > 0) {
 		return notFoundResponse()
 	}

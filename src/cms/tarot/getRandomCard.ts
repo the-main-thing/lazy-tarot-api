@@ -16,9 +16,9 @@ type Params = {
 
 async function queryIds(
 	client: Context['sanity']['client'],
-): Promise<[data: Array<CardContentQueryObject>, error: null] | [data: null, error: unknown]> {
+): Promise<[data: Array<string>, error: null] | [data: null, error: unknown]> {
 	try {
-		const data = await client.fetch<Array<CardContentQueryObject>>(
+		const data = await client.fetch<Array<string>>(
 			`*[_type=="tarotCard"]._id`
 		)
 
@@ -34,18 +34,17 @@ const queryAndPickACard = async ({
 	prevPickedCards,
 }: Pick<Params, 'context' | 'prevPickedCards'>) => {
 	try {
-
 		const [cardsIds, errorGettingCardsIds] = await queryIds(context.sanity.client)
 		if (!cardsIds || !cardsIds.length || errorGettingCardsIds) {
 			console.error(new Date(), 'Error getting cards ids', errorGettingCardsIds)
 			return null
 		}
 
-		let id = cardsIds[0]!._id
-		const [_, output] = pickRandomCard({
+		let id = cardsIds[0]!
+		const [_error, output] = pickRandomCard({
 			cardsSet: cardsIds,
 			prevPickedCards,
-			getIdFromSetItem: card => card._id,
+			getIdFromSetItem: id => id,
 		})
 
 		if (output) {

@@ -4,14 +4,13 @@ export function jsonResponse(data: unknown, init?: {
 	statusText?: string
 }) {
 	const options = init || {
-		headers: {},
+		headers: undefined,
 		status: 200,
 	}
-	options.headers = options.headers || {}
-	options.headers['Content-Type'] = 'application/json'
+	options.headers = options.headers || undefined
 	options.status = options.status || 200
 	try {
-		return [new Response(JSON.stringify(data), options), null] as const
+		return [Response.json(data, options), null] as const
 	} catch (error) {
 		return [null, error as Error] as const
 	}

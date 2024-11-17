@@ -5,8 +5,8 @@
   "type": "module",
   "main": "./src/server.bun.ts",
   "scripts": {
-    "deploy": "npx wrangler deploy",
-    "dev": "npx wrangler dev",
+		"start": "bun run src/server.bun.ts",
+		"dev": "bun --watch run src/server.bun.ts",
     "eslint-fix": "eslint src/**",
     "migrations-generate": "drizzle-kit generate",
     "migrations-migrate": "drizzle-kit migrate"

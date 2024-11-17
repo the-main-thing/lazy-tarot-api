@@ -15,7 +15,7 @@ export const queryContent = async (
 	id: Params['id'],
 ): Promise<[data: CardContentQueryObject | null, error: null] | [data: null, error: unknown]> => {
 	try {
-			const data = await client.fetch<CardContentQueryObject>(
+		const data = await client.fetch<CardContentQueryObject>(
 			`*[_type=="tarotCard" && _id=="${id}"][0]`
 		)
 
