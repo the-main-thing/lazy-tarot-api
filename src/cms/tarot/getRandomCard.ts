@@ -3,6 +3,7 @@ import type { Context } from '../../createContext.ts'
 
 import { translateCard } from './translateCard.ts'
 import { queryContent } from './getCard.ts'
+import { getItem, setItem } from '../../db/cacheStorage.ts'
 
 type Params = {
 	language: string | undefined
@@ -17,12 +18,16 @@ async function queryIds(
 	client: Context['sanity']['client'],
 ): Promise<[data: Array<string>, error: null] | [data: null, error: unknown]> {
 	try {
-		const data = await client.fetch<Array<string>>(
-			`*[_type=="tarotCard"]._id`
+		const key = `*[_type=="tarotCard"]._id`
+		let data: Array<string> | null = await getItem(key).then((value) =>
+			value ? JSON.parse(value) : null,
 		)
+		if (!data) {
+			data = await client.fetch<Array<string>>(key)
+			await setItem(key, JSON.stringify(data))
+		}
 
 		return [data || [], null]
-
 	} catch (error) {
 		return [null, error]
 	}
@@ -33,7 +38,9 @@ const queryAndPickACard = async ({
 	prevPickedCards,
 }: Pick<Params, 'context' | 'prevPickedCards'>) => {
 	try {
-		const [cardsIds, errorGettingCardsIds] = await queryIds(context.sanity.client)
+		const [cardsIds, errorGettingCardsIds] = await queryIds(
+			context.sanity.client,
+		)
 		if (!cardsIds || !cardsIds.length || errorGettingCardsIds) {
 			console.error(new Date(), 'Error getting cards ids', errorGettingCardsIds)
 			return null
@@ -43,18 +50,23 @@ const queryAndPickACard = async ({
 		const [_error, output] = pickRandomCard({
 			cardsSet: cardsIds,
 			prevPickedCards,
-			getIdFromSetItem: id => id,
+			getIdFromSetItem: (id) => id,
 		})
 
 		if (output) {
 			id = output.id
 		}
 
-		const [card, errorGettingCard] = await queryContent(context.sanity.client, id)
+		const [card, errorGettingCard] = await queryContent(
+			context.sanity.client,
+			id,
+		)
 		if (!card || errorGettingCard) {
 			console.error(new Date(), 'Error getting card by id', errorGettingCard)
 			if (!errorGettingCard) {
-				throw new Error('Picked id from list of cards, but getting a card by id returns null without error')
+				throw new Error(
+					'Picked id from list of cards, but getting a card by id returns null without error',
+				)
 			}
 		}
 

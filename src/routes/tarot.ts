@@ -7,14 +7,15 @@ import type { Context } from '../createContext.ts'
 import { notFoundResponse } from '../notFoundResponse.ts'
 import { jsonResponse } from '../jsonResponse.ts'
 import { log } from '../cms/utils/log.ts'
+import { getItem, setItem } from '../db/cacheStorage.ts'
+
+type CardsSet = Awaited<ReturnType<typeof sanityGetCardsSet>>
 
 const getRandomCardInputSchema = z.object({
 	prevPickedCards: z.array(
 		z.object({ id: z.string(), upsideDown: z.boolean() }),
 	),
 })
-
-
 
 export const getRandomCard = async (context: Context) => {
 	if (context.request.method.toUpperCase() !== 'POST') {
@@ -65,10 +66,17 @@ export const getCardsSet = async (context: Context) => {
 	if (rest.length > 0) {
 		throw notFoundResponse()
 	}
-	const data = await sanityGetCardsSet(
-		language,
-		context,
-	)
+	const key = JSON.stringify(['getCardsSet', language])
+	let data: CardsSet | null = await getItem(key) as never
+	if (!data) {
+		data = await sanityGetCardsSet(
+			language,
+			context,
+		)
+		data = JSON.stringify(data) as never
+		await setItem(key, data)
+	}
+
 	const [response, error] = jsonResponse(data, {
 		headers: {
 			"Cache-Control": `public, max-age=${MAX_AGE}, stale-while-revalidate=${MAX_AGE}`,
@@ -96,11 +104,17 @@ export const getCardById = async (
 	if (!id) {
 		throw notFoundResponse()
 	}
-	const data = await sanityGetCardById({
-		language,
-		id,
-		context,
-	})
+	const key = JSON.stringify(['getCardById', language, id])
+	let data: CardsSet[number] | null = await getItem(key) as never
+	if (!data) {
+		data = await sanityGetCardById({
+			language,
+			id,
+			context,
+		})
+		data = JSON.stringify(data) as never
+		await setItem(key, data)
+	}
 
 	const [response, error] = jsonResponse(data, {
 		headers: {
