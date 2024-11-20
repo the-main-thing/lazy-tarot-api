@@ -1,12 +1,4 @@
 {$CADDY_DOMAIN_NAME} {
-    rate_limit {
-        zone global {
-            key {remote_host}
-            events {$CADDY_EVENTS_LIMIT}
-            window {$CADDY_EVENTS_WINDOW}
-        }
-    }
-
     header {
         -Server
     }
