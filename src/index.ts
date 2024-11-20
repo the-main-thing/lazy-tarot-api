@@ -1,8 +1,8 @@
-export type { RouteName, RouteData, Router } from './routes/router.js'
+export type { RouteName, RouteData, Router } from './routes/router.ts'
 export {
 	ApiClient,
 	ApiClientError,
 	type Init,
 	type MakeRequest,
 	type ClientResponse,
-} from './client.js'
+} from './client.ts'

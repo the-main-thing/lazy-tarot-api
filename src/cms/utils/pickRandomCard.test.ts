@@ -1,4 +1,4 @@
-import { pickRandomCard } from './pickRandomCard.js'
+import { pickRandomCard } from './pickRandomCard.ts'
 
 const cardsSet = Array(100)
 	.fill('')

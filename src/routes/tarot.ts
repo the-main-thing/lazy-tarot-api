@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
-import { getCardById as sanityGetCardById } from '../cms/tarot/getCard.js'
-import { getCardsSet as sanityGetCardsSet } from '../cms/tarot/getCardsSet.js'
-import { getRandomCard as sanityGetRandomCard } from '../cms/tarot/getRandomCard.js'
-import type { Context } from '../createContext.js'
-import { notFoundResponse } from '../notFoundResponse.js'
-import { jsonResponse } from '../jsonResponse.js'
-import { log } from '../cms/utils/log.js'
+import { getCardById as sanityGetCardById } from '../cms/tarot/getCard.ts'
+import { getCardsSet as sanityGetCardsSet } from '../cms/tarot/getCardsSet.ts'
+import { getRandomCard as sanityGetRandomCard } from '../cms/tarot/getRandomCard.ts'
+import type { Context } from '../createContext.ts'
+import { notFoundResponse } from '../notFoundResponse.ts'
+import { jsonResponse } from '../jsonResponse.ts'
+import { log } from '../cms/utils/log.ts'
 
 const getRandomCardInputSchema = z.object({
 	prevPickedCards: z.array(

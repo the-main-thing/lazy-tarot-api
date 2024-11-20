@@ -1,9 +1,9 @@
 import type { SanityClient } from '@sanity/client'
 
-import { parseNumber } from '../utils/number.js'
+import { parseNumber } from '../utils/number.ts'
 
-import type { Image } from './schemas.js'
-import { urlFor } from './urlFor.js'
+import type { Image } from './schemas.ts'
+import { urlFor } from './urlFor.ts'
 
 // https://cdn.sanity.io/images/<project id>/<dataset name>/<asset name>-<original width>x<original height>.<original file format>
 const getDimentions = (src: string) => {

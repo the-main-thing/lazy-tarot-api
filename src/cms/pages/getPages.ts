@@ -1,10 +1,10 @@
-import { getTranslated } from '../sanity/getTranslated.js'
-import { getImagesSet } from '../sanity/getImagesSet.js'
+import { getTranslated } from '../sanity/getTranslated.ts'
+import { getImagesSet } from '../sanity/getImagesSet.ts'
 
-import { BREAKPOINTS } from '../constants.js'
+import { BREAKPOINTS } from '../constants.ts'
 
-import type { Context } from '../../createContext.js'
-import type { I18n, I18nBlock, Image } from '../sanity/schemas.js'
+import type { Context } from '../../createContext.ts'
+import type { I18n, I18nBlock, Image } from '../sanity/schemas.ts'
 
 type Params = {
 	language?: string

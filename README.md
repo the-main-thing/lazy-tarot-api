@@ -3,3 +3,8 @@ And it is fun also.
 
 I use neovim, btw.
 
+#Do not remove better-sqlite3
+
+
+https://github.com/drizzle-team/drizzle-orm/issues/1520#issuecomment-2230710119
+

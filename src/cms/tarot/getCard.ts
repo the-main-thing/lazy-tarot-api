@@ -1,8 +1,9 @@
 import type { SanityClient } from '@sanity/client'
 
-import type { CardContentQueryObject } from './cardContentQueryObject.js'
-import { translateCard } from './translateCard.js'
-import type { Context } from '../../createContext.js'
+import type { CardContentQueryObject } from './cardContentQueryObject.ts'
+import { translateCard } from './translateCard.ts'
+import type { Context } from '../../createContext.ts'
+import { getItem, setItem } from '../../db/cacheStorage.ts'
 
 type Params = {
 	language: string | undefined
@@ -13,14 +14,21 @@ type Params = {
 export const queryContent = async (
 	client: SanityClient,
 	id: Params['id'],
-): Promise<[data: CardContentQueryObject | null, error: null] | [data: null, error: unknown]> => {
+): Promise<
+	| [data: CardContentQueryObject | null, error: null]
+	| [data: null, error: unknown]
+> => {
 	try {
-		const data = await client.fetch<CardContentQueryObject>(
-			`*[_type=="tarotCard" && _id=="${id}"][0]`
+		const key = `*[_type=="tarotCard" && _id=="${id}"][0]`
+		let data: CardContentQueryObject | null = await getItem(key).then((v) =>
+			v ? JSON.parse(v) : null,
 		)
+		if (!data) {
+			data = await client.fetch<CardContentQueryObject>(key)
+			await setItem(key, JSON.stringify(data))
+		}
 
 		return [data, null]
-
 	} catch (error) {
 		return [null, error]
 	}

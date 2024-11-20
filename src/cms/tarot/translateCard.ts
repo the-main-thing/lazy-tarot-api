@@ -1,8 +1,8 @@
-import { getTranslated } from '../sanity/getTranslated.js'
-import { getImagesSet } from '../sanity/getImagesSet.js'
-import type { Context } from '../../createContext.js'
-import { BREAKPOINTS } from '../constants.js'
-import type { CardContentQueryObject } from './cardContentQueryObject.js'
+import { getTranslated } from '../sanity/getTranslated.ts'
+import { getImagesSet } from '../sanity/getImagesSet.ts'
+import type { Context } from '../../createContext.ts'
+import { BREAKPOINTS } from '../constants.ts'
+import type { CardContentQueryObject } from './cardContentQueryObject.ts'
 
 type Props = {
 	language: string | undefined

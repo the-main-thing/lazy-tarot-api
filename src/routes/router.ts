@@ -1,7 +1,7 @@
-import type { Context } from '../createContext.js'
-import { getAllPages } from './pages.js'
-import { getCardsSet, getCardById, getRandomCard } from './tarot.js'
-import type { TypedResponse } from '../typedResponse.type.js'
+import type { Context } from '../createContext.ts'
+import { getAllPages } from './pages.ts'
+import { getCardsSet, getCardById, getRandomCard } from './tarot.ts'
+import type { TypedResponse } from '../typedResponse.type.ts'
 
 type RouterGuardType = {
 	[routeName: `/${string}`]: (

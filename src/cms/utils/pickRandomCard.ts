@@ -1,4 +1,4 @@
-import { randInt } from './number.js'
+import { randInt } from './number.ts'
 
 const MAX_HISTORY_SIZE = 20
 const MAX_ATTEMPTS = 5000 // to prevent infinite loop

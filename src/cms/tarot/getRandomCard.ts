@@ -1,9 +1,8 @@
-import { pickRandomCard } from '../utils/pickRandomCard.js'
-import type { Context } from '../../createContext.js'
+import { pickRandomCard } from '../utils/pickRandomCard.ts'
+import type { Context } from '../../createContext.ts'
 
-import { translateCard } from './translateCard.js'
-import { queryContent } from './getCard.js'
-import type { CardContentQueryObject } from './cardContentQueryObject.js'
+import { translateCard } from './translateCard.ts'
+import { queryContent } from './getCard.ts'
 
 type Params = {
 	language: string | undefined

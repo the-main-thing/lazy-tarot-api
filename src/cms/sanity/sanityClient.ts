@@ -2,7 +2,7 @@ import {
 	createClient as createSanityClient,
 	type SanityClient,
 } from '@sanity/client'
-import { dataset, useCdn, apiVersion } from './constants.js'
+import { dataset, useCdn, apiVersion } from './constants.ts'
 
 const clientCreator = () => {
 	let client: SanityClient | null = null

@@ -1,7 +1,7 @@
-import { translateCard, type TranslatedCard } from './translateCard.js'
+import { translateCard, type TranslatedCard } from './translateCard.ts'
 
-import type { Context } from '../../createContext.js'
-import type { CardContentQueryObject } from './cardContentQueryObject.js'
+import type { Context } from '../../createContext.ts'
+import type { CardContentQueryObject } from './cardContentQueryObject.ts'
 
 
 type Params = [

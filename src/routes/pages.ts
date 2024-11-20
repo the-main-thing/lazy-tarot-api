@@ -1,8 +1,9 @@
-import { getPages } from '../cms/pages/getPages.js'
-import type { Context } from '../createContext.js'
-import { notFoundResponse } from '../notFoundResponse.js'
-import { jsonResponse } from '../jsonResponse.js'
-import { log } from '../cms/utils/log.js'
+import { getPages, type Pages } from '../cms/pages/getPages.ts'
+import type { Context } from '../createContext.ts'
+import { notFoundResponse } from '../notFoundResponse.ts'
+import { jsonResponse } from '../jsonResponse.ts'
+import { log } from '../cms/utils/log.ts'
+import { getItem, setItem } from '../db/cacheStorage.ts'
 
 const MAX_AGE = 60 * 60 * 4
 
@@ -15,10 +16,15 @@ export async function getAllPages(context: Context) {
 	if (rest.length > 0) {
 		throw notFoundResponse()
 	}
-	const data = await getPages({
-		language,
-		context,
-	})
+	const key = JSON.stringify(['getAllPages', language])
+	let data: Pages | null = await getItem(key) as never
+	if (!data) {
+		data = await getPages({
+			language,
+			context,
+		})
+		await setItem(key, JSON.stringify(data))
+	}
 	const [response, error] = jsonResponse(data, {
 		headers: {
 			"Cache-Control": `public, max-age=${MAX_AGE}, stale-while-revalidate=${MAX_AGE}`,
