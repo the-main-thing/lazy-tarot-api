@@ -4,10 +4,13 @@ import { notFoundResponse } from '../notFoundResponse.ts'
 import { jsonResponse } from '../jsonResponse.ts'
 import { log } from '../cms/utils/log.ts'
 import { getItem, setItem } from '../db/cacheStorage.ts'
+import type { TypedResponse } from '../typedResponse.type.ts'
 
 const MAX_AGE = 60 * 60 * 4
 
-export async function getAllPages(context: Context) {
+export async function getAllPages(
+	context: Context,
+): Promise<TypedResponse<Pages>> {
 	if (context.request.method.toUpperCase() !== 'GET') {
 		throw notFoundResponse()
 	}
@@ -17,7 +20,7 @@ export async function getAllPages(context: Context) {
 		throw notFoundResponse()
 	}
 	const key = JSON.stringify(['getAllPages', language])
-	let data: Pages | null = await getItem(key) as never
+	let data: Pages | null = (await getItem(key)) as never
 	if (!data) {
 		data = await getPages({
 			language,
@@ -27,8 +30,8 @@ export async function getAllPages(context: Context) {
 	}
 	const [response, error] = jsonResponse(data, {
 		headers: {
-			"Cache-Control": `public, max-age=${MAX_AGE}, stale-while-revalidate=${MAX_AGE}`,
-		}
+			'Cache-Control': `public, max-age=${MAX_AGE}, stale-while-revalidate=${MAX_AGE}`,
+		},
 	})
 
 	if (error) {
