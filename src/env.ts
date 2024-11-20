@@ -6,6 +6,7 @@ export const env = z
 		LAZY_TAROT_API_KEY: z.string().min(1),
 		DB_FILE_NAME: z.string().min(1),
 		PORT: z.string().optional(),
+		MOBILE_CLIENT_API_KEY: z.string().min(1)
 	})
 	.parse(process.env)
 
