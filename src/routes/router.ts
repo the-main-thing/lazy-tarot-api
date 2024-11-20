@@ -1,25 +1,26 @@
-import type { Context } from "../createContext.js";
-import { notFoundResponse } from "../notFoundResponse.js";
-import { getAllPages } from "./pages.js";
-import {
-	getCardsSet,
-	getCardById,
-	getRandomCard,
-} from "./tarot.js";
+import type { Context } from '../createContext.js'
+import { getAllPages } from './pages.js'
+import { getCardsSet, getCardById, getRandomCard } from './tarot.js'
+import type { TypedResponse } from '../typedResponse.type.js'
 
-export const router = (context: Context): Response | Promise<Response> => {
-	const url = new URL(context.request.url)
-	if (url.pathname.startsWith('/get-all-pages')) {
-		return getAllPages(context)
-	}
-	if (url.pathname.startsWith('/get-cards-set')) {
-		return getCardsSet(context)
-	}
-	if (url.pathname.startsWith('/get-card-by-id')) {
-		return getCardById(context)
-	}
-	if (url.pathname.startsWith('/get-random-card')) {
-		return getRandomCard(context)
-	}
-	return notFoundResponse()
+type RouterGuardType = {
+	[routeName: `/${string}`]: (
+		context: Context,
+	) => Promise<TypedResponse<unknown>>
+}
+
+export const router = {
+	['/get-all-pages']: getAllPages,
+	['/get-cards-set']: getCardsSet,
+	['/get-card-by-id']: getCardById,
+	['/get-random-card']: getRandomCard,
+} as const satisfies RouterGuardType
+
+export type Router = typeof router
+export type RouteName = keyof Router
+type RouteHandler<TRouteName extends RouteName> = Router[TRouteName]
+export type GetRouteData<TRouteName extends RouteName> = Awaited<ReturnType<Awaited<ReturnType<RouteHandler<TRouteName>>>['json']>>
+
+export type RouteData = {
+	[routeName in RouteName]: GetRouteData<routeName>
 }

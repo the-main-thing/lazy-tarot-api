@@ -1,17 +1,12 @@
-export function jsonResponse(data: unknown, init?: {
-	headers?: Record<string, string>
-	status?: number
-	statusText?: string
-}) {
-	const options = init || {
-		headers: undefined,
-		status: 200,
-	}
-	options.headers = options.headers || undefined
-	options.status = options.status || 200
+import type { TypedResponse } from "./typedResponse.type.js" 
+
+export function jsonResponse<TData>(
+	data: TData,
+	init?: ResponseInit,
+): [TypedResponse<TData>, null] | [null, { error: unknown }] {
 	try {
-		return [Response.json(data, options), null] as const
+		return [Response.json(data, init) as TypedResponse<TData>, null] as const
 	} catch (error) {
-		return [null, error as Error] as const
+		return [null, { error }] as const
 	}
 }

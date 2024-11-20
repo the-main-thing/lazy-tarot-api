@@ -1,6 +1,10 @@
 import { env } from './env.js'
 import { createContext } from './createContext.js'
 import { router } from './routes/router.js'
+import { log } from './cms/utils/log.js'
+import { notFoundResponse } from './notFoundResponse.js'
+
+const isRouteName = (value: string): value is keyof typeof router => value in router
 
 const run = () => {
 	return Bun.serve({
@@ -10,7 +14,28 @@ const run = () => {
 			if (apiKey !== env.LAZY_TAROT_API_KEY) {
 				return new Response(null, { status: 401 })
 			}
-			return router(createContext(env.SANITY_STUDIO_PROJECT_ID, request))
+			try {
+				let [routeName] = new URL(request.url).pathname.split('/').filter(Boolean)
+				routeName = `/${routeName}`
+				if (!isRouteName(routeName)) {
+					throw notFoundResponse()
+				}
+				return router[routeName](
+					createContext(env.SANITY_STUDIO_PROJECT_ID, request),
+				)
+			} catch (maybeResponse) {
+				if (maybeResponse instanceof Response) {
+					return maybeResponse
+				}
+				log.error(
+					'Error handling',
+					request.method,
+					request.url,
+					'\n',
+					maybeResponse,
+				)
+				return new Response('Internal error', { status: 500 })
+			}
 		},
 	})
 }
@@ -18,4 +43,3 @@ const run = () => {
 const server = run()
 
 console.log('Server running on port', server.port)
-

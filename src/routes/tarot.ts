@@ -8,8 +8,6 @@ import { notFoundResponse } from '../notFoundResponse.js'
 import { jsonResponse } from '../jsonResponse.js'
 import { log } from '../cms/utils/log.js'
 
-import type { GetRandomCardInput } from './tarot.types.js'
-
 const getRandomCardInputSchema = z.object({
 	prevPickedCards: z.array(
 		z.object({ id: z.string(), upsideDown: z.boolean() }),
@@ -20,16 +18,16 @@ const getRandomCardInputSchema = z.object({
 
 export const getRandomCard = async (context: Context) => {
 	if (context.request.method.toUpperCase() !== 'POST') {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	const url = new URL(context.request.url)
 	const [_path, language, ...rest] = url.pathname.split('/').filter(Boolean)
 	if (rest.length > 0) {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	try {
 		const body = await context.request.json()
-		const { prevPickedCards } = getRandomCardInputSchema.parse(body) satisfies GetRandomCardInput['body']
+		const { prevPickedCards } = getRandomCardInputSchema.parse(body)
 
 		const data = await sanityGetRandomCard({
 			language,
@@ -43,13 +41,13 @@ export const getRandomCard = async (context: Context) => {
 		})
 		if (error) {
 			log.error('getRandomCard', error)
-			return new Response('Internal error', { status: 500 })
+			throw new Response('Internal error', { status: 500 })
 		}
 
 		return response
 	} catch (error) {
 		log.error('getRandomCard\n', error)
-		return new Response('', {
+		throw new Response('', {
 			status: 400
 		})
 	}
@@ -60,12 +58,12 @@ const MAX_AGE = 60 * 60 * 1
 
 export const getCardsSet = async (context: Context) => {
 	if (context.request.method.toUpperCase() !== 'GET') {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	const url = new URL(context.request.url)
 	const [_path, language, ...rest] = url.pathname.split('/').filter(Boolean)
 	if (rest.length > 0) {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	const data = await sanityGetCardsSet(
 		language,
@@ -78,7 +76,7 @@ export const getCardsSet = async (context: Context) => {
 	})
 	if (error) {
 		log.error('getCardsSet', error)
-		return new Response('Internal error', { status: 500 })
+		throw new Response('Internal error', { status: 500 })
 	}
 	return response
 
@@ -88,15 +86,15 @@ export const getCardById = async (
 	context: Context
 ) => {
 	if (context.request.method.toUpperCase() !== 'GET') {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	const url = new URL(context.request.url)
 	const [_path, language, id, ...rest] = url.pathname.split('/').filter(Boolean)
 	if (rest.length > 0) {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	if (!id) {
-		return notFoundResponse()
+		throw notFoundResponse()
 	}
 	const data = await sanityGetCardById({
 		language,
@@ -111,7 +109,7 @@ export const getCardById = async (
 	})
 	if (error) {
 		log.error('getCardById', error)
-		return new Response('Internal error', { status: 500 })
+		throw new Response('Internal error', { status: 500 })
 	}
 	return response
 

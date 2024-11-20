@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "./src/server.bun.ts",
+  "main": "./dist/index.d",
+	"types": "./dist/index.d.ts",
   "scripts": {
 		"start": "bun run src/server.bun.ts",
 		"dev": "bun --watch run src/server.bun.ts",
     "eslint-fix": "eslint src/**",
     "migrations-generate": "drizzle-kit generate",
-    "migrations-migrate": "drizzle-kit migrate"
+    "migrations-migrate": "drizzle-kit migrate",
+		"types": "vite build"
   },
   "keywords": [],
   "author": "",
