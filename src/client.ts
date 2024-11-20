@@ -1,12 +1,11 @@
 import type { RouteData, RouteName } from './routes/router.js'
-import type { TypedResponse } from './typedResponse.type.js'
 
 export type Init = Pick<RequestInit, 'method' | 'headers' | 'body'>
 
 export type MakeRequest = (url: string, init?: Init) => Promise<Response>
 
 export type ClientResponse<TRouteName extends RouteName> = Promise<
-	TypedResponse<RouteData[TRouteName]>
+	RouteData[TRouteName]
 >
 
 export class ApiClientError extends Error {
