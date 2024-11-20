@@ -1,7 +1,0 @@
-{$CADDY_DOMAIN_NAME} {
-    header {
-        -Server
-    }
-
-    reverse_proxy localhost:{$CADDY_APP_PORT}
-}
