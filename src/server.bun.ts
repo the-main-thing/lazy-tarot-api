@@ -14,11 +14,13 @@ const run = () => {
 		fetch(request) {
 			const apiKey = request.headers.get('x-api-key')
 			if (!apiKeys.includes(apiKey as never)) {
-				const [version, mobileInit, ...rest] = new URL(request.url).pathname
-					.split('/')
-					.filter(Boolean)
-				if (version === '0' && mobileInit === 'mobile-init' && !rest.length) {
-					return Response.json({ key: env.MOBILE_CLIENT_API_KEY })
+				if (request.method.toUpperCase() === 'GET') {
+					const [version, mobileInit, ...rest] = new URL(request.url).pathname
+						.split('/')
+						.filter(Boolean)
+					if (version === '0' && mobileInit === 'mobile-init' && !rest.length) {
+						return Response.json({ key: env.MOBILE_CLIENT_API_KEY })
+					}
 				}
 
 				return new Response(null, { status: 401 })
