@@ -11,50 +11,59 @@ export type ClientResponse<TRouteName extends RouteName> = Promise<
 export class ApiClientError extends Error {
   readonly isApiClientError = true
   readonly response: Response
-  constructor(message: string, response: Response) {
+  readonly json: Record<PropertyKey, unknown> | undefined = undefined
+  constructor(
+    message: string,
+    response: Response,
+    json?: Record<PropertyKey, unknown>,
+  ) {
     super(message)
     this.response = response
+    this.json = json
   }
 }
 
 export class ApiClient {
   private readonly makeRequestFn: MakeRequest
-  private readonly apiRoot: `http${string}`
-  private readonly apiKey: string
-  private readonly getInit: RequestInit
+  private readonly apiRoot: string
+  private readonly headers = new Headers({
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  })
+  private readonly getRequestInit: RequestInit = {
+    method: 'GET',
+    headers: this.headers,
+  }
 
   constructor(
     makeRequestFn: MakeRequest,
-    apiRoot: `http${string}`,
-    apiKey: string,
+    /** http(s)://.... */
+    apiRoot: string,
+    apiKey: string | undefined | null,
   ) {
     this.makeRequestFn = makeRequestFn
-    this.apiRoot = apiRoot
-    this.apiKey = apiKey
-    this.getInit = {
-      method: 'GET',
-      headers: new Headers({
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      }),
+    this.apiRoot = new URL(apiRoot).href
+    if (this.apiRoot.endsWith('/')) {
+      this.apiRoot = this.apiRoot.slice(0, -1)
+    }
+    if (apiKey) {
+      this.headers.set('x-api-key', apiKey)
     }
   }
 
-  private readonly headers = () => {
-    return new Headers({
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'x-api-key': this.apiKey,
-    })
-  }
-
-  public readonly mobileInit = async (): Promise<string> => {
-    const url = new URL('/0/mobile-init').href
-    const response = await this.makeRequestFn(url, this.getInit)
+  public readonly mobileInit = async (): Promise<void> => {
+    const url = this.apiRoot + '/0/mobile-init'
+    const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
-      const { key } = (await response.json()) as { key: string }
-      return key
+      const json = (await response.json()) as { key: string }
+      if (!json.key) {
+        throw new ApiClientError(
+          '/0/mobile-init returned unexpected result',
+          response,
+          json,
+        )
+      }
+      this.headers.set('x-api-key', json.key)
     }
     throw new ApiClientError('/0/mobile-init returned non OK status', response)
   }
@@ -62,9 +71,9 @@ export class ApiClient {
   public readonly getAllPages = async (
     language: string,
   ): ClientResponse<'/get-all-pages'> => {
-    const url = new URL(`/get-all-pages/${language}`, this.apiRoot).href
+    const url = this.apiRoot + `/get-all-pages/${language}`
 
-    const response = await this.makeRequestFn(url, this.getInit)
+    const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
       return response.json() as never
     }
@@ -74,9 +83,9 @@ export class ApiClient {
   public readonly getCardsSet = async (
     language: string,
   ): ClientResponse<'/get-cards-set'> => {
-    const url = new URL(`/get-cards-set/${language}`, this.apiRoot).href
+    const url = this.apiRoot + `/get-cards-set/${language}`
 
-    const response = await this.makeRequestFn(url, this.getInit)
+    const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
       return response.json() as never
     }
@@ -87,9 +96,8 @@ export class ApiClient {
     language: string,
     id: string,
   ): ClientResponse<'/get-card-by-id'> => {
-    const url = new URL(`/get-card-by-id/${language}/${id}`, this.apiRoot).href
-
-    const response = await this.makeRequestFn(url, this.getInit)
+    const url = this.apiRoot + `/get-card-by-id/${language}/${id}`
+    const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
       return response.json() as never
     }
@@ -100,11 +108,11 @@ export class ApiClient {
     language: string,
     previouslyPickedCards: Array<{ id: string; upsideDown: boolean }>,
   ): ClientResponse<'/get-random-card'> => {
-    const url = new URL(`/get-random-card/${language}`, this.apiRoot).href
+    const url = this.apiRoot + `/get-random-card/${language}`
 
     const response = await this.makeRequestFn(url, {
       method: 'POST',
-      headers: this.headers(),
+      headers: this.headers,
       body: JSON.stringify({
         prevPickedCards: previouslyPickedCards,
       }),
