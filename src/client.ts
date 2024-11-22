@@ -10,7 +10,7 @@ export type ClientResponse<TRouteName extends RouteName> = Promise<
 
 export class ApiClientError extends Error {
   readonly isApiClientError = true
-  response: Response
+  readonly response: Response
   constructor(message: string, response: Response) {
     super(message)
     this.response = response
@@ -49,7 +49,7 @@ export class ApiClient {
     })
   }
 
-  public mobileInit = async (): Promise<string> => {
+  public readonly mobileInit = async (): Promise<string> => {
     const url = new URL('/0/mobile-init').href
     const response = await this.makeRequestFn(url, this.getInit)
     if (response.status < 400) {
@@ -59,7 +59,7 @@ export class ApiClient {
     throw new ApiClientError('/0/mobile-init returned non OK status', response)
   }
 
-  public getAllPages = async (
+  public readonly getAllPages = async (
     language: string,
   ): ClientResponse<'/get-all-pages'> => {
     const url = new URL(`/get-all-pages/${language}`, this.apiRoot).href
@@ -71,7 +71,7 @@ export class ApiClient {
     throw new ApiClientError('/get-all-pages returned non OK status', response)
   }
 
-  public getCardsSet = async (
+  public readonly getCardsSet = async (
     language: string,
   ): ClientResponse<'/get-cards-set'> => {
     const url = new URL(`/get-cards-set/${language}`, this.apiRoot).href
@@ -83,7 +83,7 @@ export class ApiClient {
     throw new ApiClientError('/get-cards-set returned non OK status', response)
   }
 
-  public getCardById = async (
+  public readonly getCardById = async (
     language: string,
     id: string,
   ): ClientResponse<'/get-card-by-id'> => {
@@ -96,7 +96,7 @@ export class ApiClient {
     throw new ApiClientError('/get-card-by-id returned non OK status', response)
   }
 
-  public getRandomCard = async (
+  public readonly getRandomCard = async (
     language: string,
     previouslyPickedCards: Array<{ id: string; upsideDown: boolean }>,
   ): ClientResponse<'/get-random-card'> => {
