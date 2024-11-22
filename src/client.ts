@@ -64,7 +64,7 @@ export class ApiClient {
         )
       }
       this.headers.set('x-api-key', json.key)
-			return
+      return
     }
     throw new ApiClientError('/0/mobile-init returned non OK status', response)
   }
@@ -79,6 +79,25 @@ export class ApiClient {
       return response.json() as never
     }
     throw new ApiClientError('/get-all-pages returned non OK status', response)
+  }
+
+  public readonly reportError = async (
+    client: 'mobile',
+    data: unknown,
+  ): ClientResponse<'/0/mobile'> => {
+    const url = this.apiRoot + `/0/${client}`
+    const response = await this.makeRequestFn(url, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify(data),
+    })
+    if (response.status < 400) {
+      return response.json() as never
+    }
+    throw new ApiClientError(
+      `/0/${client} request returned non OK status`,
+      response,
+    )
   }
 
   public readonly getCardsSet = async (
