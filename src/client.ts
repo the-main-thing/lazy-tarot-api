@@ -64,6 +64,7 @@ export class ApiClient {
         )
       }
       this.headers.set('x-api-key', json.key)
+			return
     }
     throw new ApiClientError('/0/mobile-init returned non OK status', response)
   }
