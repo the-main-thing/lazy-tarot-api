@@ -1,51 +1,68 @@
 import { createContext, type Context } from '../createContext'
 import { getAllPages } from './pages'
 import { getCardsSet, getCardById, getRandomCard } from './tarot'
-import { postMobile } from './clientErrors'
+import { postMobileError } from './clientErrors'
 import { mobileInit, mobileInitMatch } from './mobileInit'
 import { hasValidKey } from './hasValidKey'
 import { notFoundResponse } from '../notFoundResponse'
 import { env } from '../env'
 import type { TypedResponse } from '../typedResponse.type'
 
+type Handler<TData> = (context: Context) => Promise<TypedResponse<TData>>
 type RouterGuardType = {
-  [routeName: `/${string}`]: (
-    context: Context,
-  ) => Promise<TypedResponse<unknown>>
+  [routeName: `/${string}`]: Handler<unknown>
 }
 
-export const router = {
-  ['/get-all-pages']: getAllPages,
-  ['/get-cards-set']: getCardsSet,
-  ['/get-card-by-id']: getCardById,
-  ['/get-random-card']: getRandomCard,
-  ['/0/mobile']: postMobile,
+const withKey =
+  <TRouteHandler extends Handler<any>>(routeHandler: TRouteHandler) =>
+  (context: Context) => {
+    if (hasValidKey(context.request)) {
+      return routeHandler(context)
+    }
+    throw new Response(null, { status: 401 })
+  }
+
+const routesMap = {
+  ['/get-all-pages']: withKey(getAllPages),
+  ['/get-cards-set']: withKey(getCardsSet),
+  ['/get-card-by-id']: withKey(getCardById),
+  ['/get-random-card']: withKey(getRandomCard),
+  ['/mobile/0/error']: withKey(postMobileError),
+  ['/mobile/0/init']: mobileInit,
 } as const satisfies RouterGuardType
 
-const isRouteName = (value: string): value is keyof typeof router =>
-  value in router
-
-export const handleRequest = (request: Request) => {
-  if (!hasValidKey(request)) {
-    if (mobileInitMatch(new URL(request.url))) {
-      return mobileInit(request)
-    }
-    return new Response(null, { status: 401 })
+export const router = (request: Request) => {
+  let [rootRouteName, ...restOfTheName] = new URL(request.url).pathname
+    .split('/')
+    .filter(Boolean)
+  rootRouteName = `/${rootRouteName}`
+  if (rootRouteName in routesMap) {
+    return routesMap[rootRouteName as RouteName](
+      createContext(env.SANITY_STUDIO_PROJECT_ID, request),
+    )
   }
-
-  let [routeName] = new URL(request.url).pathname.split('/').filter(Boolean)
-  routeName = `/${routeName}`
-  if (!isRouteName(routeName)) {
-    throw notFoundResponse()
+  if (rootRouteName === '/mobile') {
+    const [version, pathName] = restOfTheName
+    const routeName = (rootRouteName +
+      '/' +
+      version +
+      '/' +
+      pathName) as RouteName
+    return routesMap[routeName]?.(
+      createContext(env.SANITY_STUDIO_PROJECT_ID, request) ||
+        notFoundResponse(),
+    )
   }
-  return router[routeName](createContext(env.SANITY_STUDIO_PROJECT_ID, request))
+  return notFoundResponse()
 }
 
-export type Router = typeof router
+export type Router = typeof routesMap
 export type RouteName = keyof Router
-type RouteHandler<TRouteName extends RouteName> = Router[TRouteName]
-export type GetRouteData<TRouteName extends RouteName> = Awaited<
-  ReturnType<Awaited<ReturnType<RouteHandler<TRouteName>>>['json']>
+type RouteHandler = {
+  [routeName in RouteName]: Router[routeName]
+}
+type GetRouteData<TRouteName extends RouteName> = Awaited<
+  ReturnType<Awaited<ReturnType<RouteHandler[TRouteName]>>['json']>
 >
 
 export type RouteData = {

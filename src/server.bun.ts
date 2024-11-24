@@ -1,13 +1,13 @@
 import { env } from './env'
 import { log } from './cms/utils/log'
-import { handleRequest } from './routes/router'
+import { router } from './routes/router'
 
 const run = () => {
   return Bun.serve({
     port: env.PORT || 3000,
     fetch(request) {
       try {
-        return handleRequest(request)
+        return router(request)
       } catch (error) {
         if (error instanceof Response) {
           return error

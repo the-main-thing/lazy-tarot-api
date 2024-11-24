@@ -6,7 +6,7 @@ import { mobileClientErrors } from '../db/schema/mobileClientErrors'
 
 const accepted = { accepted: true }
 
-export const postMobile = async (context: Context) => {
+export const postMobileError = async (context: Context) => {
   if (context.request.method !== 'POST') {
     throw notFoundResponse()
   }

@@ -4,9 +4,9 @@ export type Init = Pick<RequestInit, 'method' | 'headers' | 'body'>
 
 export type MakeRequest = (url: string, init?: Init) => Promise<Response>
 
-export type ClientResponse<TRouteName extends RouteName> = Promise<
-  RouteData[TRouteName]
->
+export type ClientResponses = {
+  [routeName in RouteName]: Promise<RouteData[routeName]>
+}
 
 export class ApiClientError extends Error {
   readonly isApiClientError = true
@@ -51,11 +51,13 @@ export class ApiClient {
     }
   }
 
-  public readonly mobileInit = async (): Promise<void> => {
-    const url = this.apiRoot + '/0/mobile-init'
+  public readonly mobileInit = async (): Promise<
+    Omit<RouteData['/mobile/0/init'], 'key'>
+  > => {
+    const url = this.apiRoot + '/mobile/0/init'
     const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
-      const json = (await response.json()) as { key: string }
+      const json = await (response.json() as ClientResponses['/mobile/0/init'])
       if (!json.key) {
         throw new ApiClientError(
           '/0/mobile-init returned unexpected result',
@@ -64,14 +66,15 @@ export class ApiClient {
         )
       }
       this.headers.set('x-api-key', json.key)
-      return
+      const { key: _, ...data } = json
+      return data
     }
-    throw new ApiClientError('/0/mobile-init returned non OK status', response)
+    throw new ApiClientError('/mobile/0/init returned non OK status', response)
   }
 
   public readonly getAllPages = async (
     language: string,
-  ): ClientResponse<'/get-all-pages'> => {
+  ): ClientResponses['/get-all-pages'] => {
     const url = this.apiRoot + `/get-all-pages/${language}`
 
     const response = await this.makeRequestFn(url, this.getRequestInit)
@@ -84,8 +87,8 @@ export class ApiClient {
   public readonly reportError = async (
     client: 'mobile',
     data: unknown,
-  ): ClientResponse<'/0/mobile'> => {
-    const url = this.apiRoot + `/0/${client}`
+  ): ClientResponses['/mobile/0/error'] => {
+    const url = this.apiRoot + `/${client}/0/error`
     const response = await this.makeRequestFn(url, {
       method: 'POST',
       headers: this.headers,
@@ -95,14 +98,14 @@ export class ApiClient {
       return response.json() as never
     }
     throw new ApiClientError(
-      `/0/${client} request returned non OK status`,
+      `/${client}/0/error request returned non OK status`,
       response,
     )
   }
 
   public readonly getCardsSet = async (
     language: string,
-  ): ClientResponse<'/get-cards-set'> => {
+  ): ClientResponses['/get-cards-set'] => {
     const url = this.apiRoot + `/get-cards-set/${language}`
 
     const response = await this.makeRequestFn(url, this.getRequestInit)
@@ -115,7 +118,7 @@ export class ApiClient {
   public readonly getCardById = async (
     language: string,
     id: string,
-  ): ClientResponse<'/get-card-by-id'> => {
+  ): ClientResponses['/get-card-by-id'] => {
     const url = this.apiRoot + `/get-card-by-id/${language}/${id}`
     const response = await this.makeRequestFn(url, this.getRequestInit)
     if (response.status < 400) {
@@ -127,7 +130,7 @@ export class ApiClient {
   public readonly getRandomCard = async (
     language: string,
     previouslyPickedCards: Array<{ id: string; upsideDown: boolean }>,
-  ): ClientResponse<'/get-random-card'> => {
+  ): ClientResponses['/get-random-card'] => {
     const url = this.apiRoot + `/get-random-card/${language}`
 
     const response = await this.makeRequestFn(url, {
