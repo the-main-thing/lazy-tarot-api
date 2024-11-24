@@ -1,6 +1,6 @@
 import type { SanityClient } from '@sanity/client'
 
-import { createClient } from './cms/sanity/sanityClient.ts'
+import { createClient } from './cms/sanity/sanityClient'
 
 
 export function createContext(sanityStudioProjectId: string, request: Request): Context {

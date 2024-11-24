@@ -1,8 +1,8 @@
-import { env } from './env.ts'
-import { createContext } from './createContext.ts'
-import { router } from './routes/router.ts'
-import { log } from './cms/utils/log.ts'
-import { notFoundResponse } from './notFoundResponse.ts'
+import { env } from './env'
+import { createContext } from './createContext'
+import { router } from './routes/router'
+import { log } from './cms/utils/log'
+import { notFoundResponse } from './notFoundResponse'
 
 const isRouteName = (value: string): value is keyof typeof router =>
 	value in router

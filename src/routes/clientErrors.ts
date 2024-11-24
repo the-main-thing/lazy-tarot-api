@@ -1,8 +1,8 @@
-import { jsonResponse } from '../jsonResponse.ts'
-import { notFoundResponse } from '../notFoundResponse.ts'
-import type { Context } from '../createContext.ts'
-import { db } from '../db/db.ts'
-import { mobileClientErrors } from '../db/schema/mobileClientErrors.ts'
+import { jsonResponse } from '../jsonResponse'
+import { notFoundResponse } from '../notFoundResponse'
+import type { Context } from '../createContext'
+import { db } from '../db/db'
+import { mobileClientErrors } from '../db/schema/mobileClientErrors'
 
 const accepted = { accepted: true }
 

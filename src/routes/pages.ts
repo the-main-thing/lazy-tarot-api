@@ -1,10 +1,10 @@
-import { getPages, type Pages } from '../cms/pages/getPages.ts'
-import type { Context } from '../createContext.ts'
-import { notFoundResponse } from '../notFoundResponse.ts'
-import { jsonResponse } from '../jsonResponse.ts'
-import { log } from '../cms/utils/log.ts'
-import { getItem, setItem } from '../db/cacheStorage.ts'
-import type { TypedResponse } from '../typedResponse.type.ts'
+import { getPages, type Pages } from '../cms/pages/getPages'
+import type { Context } from '../createContext'
+import { notFoundResponse } from '../notFoundResponse'
+import { jsonResponse } from '../jsonResponse'
+import { log } from '../cms/utils/log'
+import { getItem, setItem } from '../db/cacheStorage'
+import type { TypedResponse } from '../typedResponse.type'
 
 const MAX_AGE = 60 * 60 * 4
 

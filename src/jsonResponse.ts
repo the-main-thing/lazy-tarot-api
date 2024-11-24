@@ -1,4 +1,4 @@
-import type { TypedResponse } from './typedResponse.type.ts'
+import type { TypedResponse } from './typedResponse.type'
 
 export function jsonResponse<TData>(
 	data: TData,

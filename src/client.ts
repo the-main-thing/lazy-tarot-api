@@ -1,4 +1,4 @@
-import type { RouteData, RouteName } from './routes/router.ts'
+import type { RouteData, RouteName } from './routes/router'
 
 export type Init = Pick<RequestInit, 'method' | 'headers' | 'body'>
 

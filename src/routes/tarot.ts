@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
-import { getCardById as sanityGetCardById } from '../cms/tarot/getCard.ts'
-import { getCardsSet as sanityGetCardsSet } from '../cms/tarot/getCardsSet.ts'
-import { getRandomCard as sanityGetRandomCard } from '../cms/tarot/getRandomCard.ts'
-import type { Context } from '../createContext.ts'
-import { notFoundResponse } from '../notFoundResponse.ts'
-import { jsonResponse } from '../jsonResponse.ts'
-import { log } from '../cms/utils/log.ts'
-import { getItem, setItem } from '../db/cacheStorage.ts'
-import type { TypedResponse } from '../typedResponse.type.ts'
+import { getCardById as sanityGetCardById } from '../cms/tarot/getCard'
+import { getCardsSet as sanityGetCardsSet } from '../cms/tarot/getCardsSet'
+import { getRandomCard as sanityGetRandomCard } from '../cms/tarot/getRandomCard'
+import type { Context } from '../createContext'
+import { notFoundResponse } from '../notFoundResponse'
+import { jsonResponse } from '../jsonResponse'
+import { log } from '../cms/utils/log'
+import { getItem, setItem } from '../db/cacheStorage'
+import type { TypedResponse } from '../typedResponse.type'
 
 type CardsSet = Awaited<ReturnType<typeof sanityGetCardsSet>>
 

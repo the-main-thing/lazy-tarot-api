@@ -1,8 +1,8 @@
-import type { Context } from '../createContext.ts'
-import { getAllPages } from './pages.ts'
-import { getCardsSet, getCardById, getRandomCard } from './tarot.ts'
-import { postMobile } from './clientErrors.ts'
-import type { TypedResponse } from '../typedResponse.type.ts'
+import type { Context } from '../createContext'
+import { getAllPages } from './pages'
+import { getCardsSet, getCardById, getRandomCard } from './tarot'
+import { postMobile } from './clientErrors'
+import type { TypedResponse } from '../typedResponse.type'
 
 type RouterGuardType = {
   [routeName: `/${string}`]: (

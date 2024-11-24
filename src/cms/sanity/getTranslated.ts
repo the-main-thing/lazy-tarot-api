@@ -1,37 +1,37 @@
-import { log } from '../utils/log.ts'
-import { defaultLanguage } from './constants.ts'
+import { log } from '../utils/log'
+import { defaultLanguage } from './constants'
 
 export function getTranslated<T>(
-	i18n: Array<{
-		_key: string
-		value: T
-	}>,
-	lang: string | undefined,
+  i18n: Array<{
+    _key: string
+    value: T
+  }>,
+  lang: string | undefined,
 ) {
-	lang = lang || defaultLanguage
-	let defaultTranslation: T = undefined as never
-	let foundSomething = false
-	for (const translation of i18n) {
-		if (translation._key === lang) {
-			return translation.value
-		}
-		if (translation._key === defaultLanguage) {
-			foundSomething = true
-			defaultTranslation = translation.value
-		}
-	}
+  lang = lang || defaultLanguage
+  let defaultTranslation: T = undefined as never
+  let foundSomething = false
+  for (const translation of i18n) {
+    if (translation._key === lang) {
+      return translation.value
+    }
+    if (translation._key === defaultLanguage) {
+      foundSomething = true
+      defaultTranslation = translation.value
+    }
+  }
 
-	if (!foundSomething) {
-		log.error(
-			'No translation found for code',
-			lang,
-			'and no translation found for default code',
-			defaultLanguage,
-			'from',
-			JSON.stringify(i18n, null, 2),
-		)
-		return i18n[0]!.value
-	}
+  if (!foundSomething) {
+    log.error(
+      'No translation found for code',
+      lang,
+      'and no translation found for default code',
+      defaultLanguage,
+      'from',
+      JSON.stringify(i18n, null, 2),
+    )
+    return i18n[0]!.value
+  }
 
-	return defaultTranslation
+  return defaultTranslation
 }

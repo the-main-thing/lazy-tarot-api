@@ -1,2 +1,2 @@
-export { cache } from './cache.ts'
+export { cache } from './cache'
 

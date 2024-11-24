@@ -1,4 +1,4 @@
-import type { I18nBlock, I18n, Image } from '../sanity/schemas.ts'
+import type { I18nBlock, I18n, Image } from '../sanity/schemas'
 
 export type Description = {
 	fullDescription: I18nBlock,

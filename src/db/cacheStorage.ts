@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 
-import { db } from './db.ts'
-import { cache } from './schema/index.ts'
+import { db } from './db'
+import { cache } from './schema/index'
 
 const STALE_TIME = 1000 * 60 * 60 * 1 // 1 hour
 

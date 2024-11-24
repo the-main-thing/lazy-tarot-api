@@ -1,9 +1,9 @@
 import type { SanityClient } from '@sanity/client'
 
-import type { CardContentQueryObject } from './cardContentQueryObject.ts'
-import { translateCard } from './translateCard.ts'
-import type { Context } from '../../createContext.ts'
-import { getItem, setItem } from '../../db/cacheStorage.ts'
+import type { CardContentQueryObject } from './cardContentQueryObject'
+import { translateCard } from './translateCard'
+import type { Context } from '../../createContext'
+import { getItem, setItem } from '../../db/cacheStorage'
 
 type Params = {
 	language: string | undefined
