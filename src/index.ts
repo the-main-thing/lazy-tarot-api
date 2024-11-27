@@ -4,5 +4,5 @@ export {
 	ApiClientError,
 	type Init,
 	type MakeRequest,
-	type ClientResponse,
+	type ClientResponses,
 } from './client'

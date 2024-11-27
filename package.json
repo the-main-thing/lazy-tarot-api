@@ -8,10 +8,10 @@
   "scripts": {
     "start": "bun run src/server.bun.ts",
     "dev": "bun --watch run src/server.bun.ts",
-		"build-client": "tsc",
+    "build-client": "tsc",
     "eslint-fix": "eslint src/**",
     "migrations:push": "drizzle-kit push",
-		"postinstall": "bun run build-client"
+    "postinstall": "bun run build-client"
   },
   "keywords": [],
   "author": "",
