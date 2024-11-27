@@ -2,7 +2,7 @@ import { createContext, type Context } from '../createContext'
 import { getAllPages } from './pages'
 import { getCardsSet, getCardById, getRandomCard } from './tarot'
 import { postMobileError } from './clientErrors'
-import { mobileInit, mobileInitMatch } from './mobileInit'
+import { mobileInit } from './mobileInit'
 import { hasValidKey } from './hasValidKey'
 import { notFoundResponse } from '../notFoundResponse'
 import { env } from '../env'
@@ -14,7 +14,7 @@ type RouterGuardType = {
 }
 
 const withKey =
-  <TRouteHandler extends Handler<any>>(routeHandler: TRouteHandler) =>
+  <TData>(routeHandler: Handler<TData>) =>
   (context: Context) => {
     if (hasValidKey(context.request)) {
       return routeHandler(context)
