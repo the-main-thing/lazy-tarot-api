@@ -4,14 +4,13 @@
   "description": "",
   "type": "module",
   "main": "./src/index.ts",
-  "types": "./src/index.d.ts",
+  "types": "./src/index.ts",
   "scripts": {
     "start": "bun run src/server.bun.ts",
     "dev": "bun --watch run src/server.bun.ts",
     "build-client": "tsc",
     "eslint-fix": "eslint src/**",
     "migrations:push": "drizzle-kit push",
-    "postinstall": "bun run build-client"
   },
   "keywords": [],
   "author": "",
