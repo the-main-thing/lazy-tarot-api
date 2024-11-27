@@ -35,7 +35,15 @@ export const getImagesSet = <TBreakpoints extends Record<number, number>>({
   format?: 'png' | 'jpg'
   breakpoints: TBreakpoints
   image: Image
-}) => {
+}): {
+  dimentions: [width: number, height: number]
+  srcSet: {
+    [key in keyof TBreakpoints]: {
+      src: string
+      width: TBreakpoints[key]
+    }
+  }
+} => {
   let dimentions = null as null | [width: number, height: number]
   const entries = Object.entries(breakpoints).map(([breakPoint, width]) => {
     const src = urlFor(client, image)
