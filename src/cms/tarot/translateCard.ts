@@ -48,3 +48,4 @@ export const translateCard = ({ language, card, context }: Props) => {
 }
 
 export type TranslatedCard = ReturnType<typeof translateCard>
+
