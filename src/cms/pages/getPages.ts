@@ -187,7 +187,7 @@ const translate = (
         tarotReadingPageContent.submitButtonLabel,
         language,
       ),
-      cardBackImage: getImagesSet({
+      cardBackImage: getImagesSet<typeof BREAKPOINTS>({
         client,
         image: tarotReadingPageContent.cardBackImage,
         breakpoints: BREAKPOINTS,
@@ -200,7 +200,7 @@ const translate = (
     manifestoPageContent: {
       header: getTranslated(manifestoPageContent.header, language),
       content: getTranslated(manifestoPageContent.content, language),
-      headerImage: getImagesSet({
+      headerImage: getImagesSet<{ [key in keyof typeof BREAKPOINTS]: 700 }>({
         client,
         format: 'png',
         image: manifestoPageContent.headerImage,
@@ -215,7 +215,7 @@ const translate = (
           },
         ),
       }),
-      contentImage: getImagesSet({
+      contentImage: getImagesSet<typeof BREAKPOINTS>({
         client,
         image: manifestoPageContent.contentImage,
         breakpoints: BREAKPOINTS,
@@ -227,7 +227,7 @@ const translate = (
         teamTitle: getTranslated(aboutUsPageContent.header.teamTitle, language),
         pageTitle: getTranslated(aboutUsPageContent.header.pageTitle, language),
       },
-      image: getImagesSet({
+      image: getImagesSet<typeof BREAKPOINTS>({
         client,
         image: aboutUsPageContent.image,
         breakpoints: BREAKPOINTS,

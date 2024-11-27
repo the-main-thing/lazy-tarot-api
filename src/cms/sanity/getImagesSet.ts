@@ -4,7 +4,6 @@ import { parseNumber } from '../utils/number'
 
 import type { Image } from './schemas'
 import { urlFor } from './urlFor'
-import { BREAKPOINTS } from '../constants'
 
 // https://cdn.sanity.io/images/<project id>/<dataset name>/<asset name>-<original width>x<original height>.<original file format>
 const getDimentions = (src: string) => {
@@ -26,17 +25,15 @@ const getDimentions = (src: string) => {
   return dimentions as [width: number, height: number]
 }
 
-export const getImagesSet = <
-  TBreakpoints extends typeof BREAKPOINTS = typeof BREAKPOINTS,
->({
+export const getImagesSet = <TBreakpoints extends Record<number, number>>({
   client,
   image,
-  breakpoints = BREAKPOINTS as never,
+  breakpoints,
   format,
 }: {
   client: SanityClient
   format?: 'png' | 'jpg'
-  breakpoints?: TBreakpoints
+  breakpoints: TBreakpoints
   image: Image
 }) => {
   let dimentions = null as null | [width: number, height: number]

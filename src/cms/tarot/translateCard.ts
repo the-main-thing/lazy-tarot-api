@@ -39,7 +39,7 @@ export const translateCard = ({ language, card, context }: Props) => {
         language,
       ),
     },
-    image: getImagesSet({
+    image: getImagesSet<typeof BREAKPOINTS>({
       client: context.sanity.client,
       image: card.image,
       breakpoints: BREAKPOINTS,
