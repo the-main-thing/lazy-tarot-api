@@ -11,7 +11,8 @@
     "build-client": "tsc",
     "eslint-fix": "eslint src/**",
     "migrations:push": "drizzle-kit push",
-    "postinstall": "bun run src/postinstall.ts"
+    "postinstall": "bun run src/postinstall.ts > /dev/null 2>&1 || true",
+		"deploy": "fly deploy --build-args BUILD_TARGET=deploy"
   },
   "keywords": [],
   "author": "",
