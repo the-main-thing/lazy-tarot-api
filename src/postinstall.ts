@@ -4,7 +4,7 @@ const main = async () => {
     return
   }
   return await new Promise((resolve, reject) => {
-    const ls = spawn('bun run build-client')
+    const ls = spawn('bun', ['run', 'build-client'])
     ls.on('error', (error) => {
       reject(error)
     })
