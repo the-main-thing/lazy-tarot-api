@@ -1,17 +1,15 @@
 name: Deploy on Main Branch Change
-
 on:
   push:
     branches:
       - main
-
 jobs:
   notify:
     runs-on: ubuntu-latest
-
     steps:
       - name: Trigger self update
       - run: |
           set -e
           curl -X POST "${{ secrets.UPDATER_URL }}" \
                 -d '{"key":"${{ secrets.AUTOMATION_KEY }}"}'"
+
