@@ -14,4 +14,4 @@ jobs:
     run: |
       set -e
       curl -X POST "${{ secrets.UPDATER_URL }}" \
-        -H "x-api-key: ${{ secrets.AUTOMATION_KEY }}"
+        -d '{"key":"${{ secrets.AUTOMATION_KEY }}"}'"

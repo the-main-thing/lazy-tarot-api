@@ -15,15 +15,17 @@ const cmd = (command: string) => {
 }
 
 export const updater = async (request: Request) => {
-  if (request.headers.get('x-api-key') !== env.AUTOMATION_API_KEY) {
-    return
-  }
   if (request.method !== 'POST') {
     return new Response(null, { status: 404 })
   }
   const url = new URL(request.url)
   if (url.pathname !== '/updater') {
     return new Response(null, { status: 404 })
+  }
+
+  const { key } = await request.json()
+  if (key !== env.AUTOMATION_API_KEY) {
+    return new Response(null, { status: 401 })
   }
 
   try {
