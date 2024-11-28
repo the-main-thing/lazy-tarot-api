@@ -18,7 +18,7 @@ export const updater = async (request: Request) => {
   if (request.headers.get('x-api-key') !== env.AUTOMATION_API_KEY) {
     return
   }
-  if (request.method !== 'GET') {
+  if (request.method !== 'POST') {
     return new Response(null, { status: 404 })
   }
   const url = new URL(request.url)
