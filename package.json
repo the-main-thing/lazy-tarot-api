@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-		"pm2": "pm2 start pm2.config.mjs",
+		"pm2": "pm2 start --interpreter ~/.bun/bin/bun src/server.bun.ts --name tarot-api",
     "start": "bun run src/server.bun.ts",
     "dev": "bun --watch run src/server.bun.ts",
     "build-client": "tsc",
