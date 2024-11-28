@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-		"pm2": "pm2 start pm2.config.js",
+		"pm2": "pm2 start pm2.config.mjs",
     "start": "bun run src/server.bun.ts",
     "dev": "bun --watch run src/server.bun.ts",
     "build-client": "tsc",
