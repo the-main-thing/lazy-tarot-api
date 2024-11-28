@@ -14,6 +14,15 @@ const cmd = (command: string) => {
   })
 }
 
+const update = async () => {
+  await cmd('git pull')
+  await cmd('bun install')
+  await cmd('bun run migrations-push')
+  exec('pm2 restart tarot-api')
+}
+
+update()
+
 export const updater = async (request: Request) => {
   if (request.headers.get('x-api-key') !== env.AUTOMATION_API_KEY) {
     return
