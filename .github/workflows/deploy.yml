@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send GET request
+      - name: Trigger self update
     run: |
       set -e
       curl -X POST "${{ secrets.UPDATER_URL }}" \
