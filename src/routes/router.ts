@@ -7,6 +7,8 @@ import { hasValidKey } from './hasValidKey'
 import { notFoundResponse } from '../notFoundResponse'
 import { env } from '../env'
 import type { TypedResponse } from '../typedResponse.type'
+import { translationsRouter } from './translations'
+import { updater } from './updater'
 
 type Handler<TData> = (context: Context) => Promise<TypedResponse<TData>>
 type RouterGuardType = {
@@ -31,7 +33,7 @@ const routesMap = {
   ['/mobile/0/init']: mobileInit,
 } as const satisfies RouterGuardType
 
-export const router = (request: Request) => {
+export const router = async (request: Request) => {
   let [rootRouteName, ...restOfTheName] = new URL(request.url).pathname
     .split('/')
     .filter(Boolean)
@@ -53,7 +55,15 @@ export const router = (request: Request) => {
         notFoundResponse(),
     )
   }
-  return notFoundResponse()
+  let updaterResponse = await updater(request)
+  if (updaterResponse) {
+    return updaterResponse
+  }
+  let response = await translationsRouter(request)
+  if (response === 'SHOULD_RETURN_UNDEFINED') {
+    return undefined as never
+  }
+  return response
 }
 
 export type Router = typeof routesMap
