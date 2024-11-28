@@ -8,8 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger self update
-      - run: |
+        run: |
           set -e
           curl -X POST "${{ secrets.UPDATER_URL }}" \
                 -d '{"key":"${{ secrets.AUTOMATION_KEY }}"}'"
-
