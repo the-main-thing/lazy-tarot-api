@@ -13,5 +13,5 @@ jobs:
       - name: Send GET request
     run: |
       set -e
-      curl -X GET "${{ secrets.UPDATER_URL }}" \
+      curl -X POST "${{ secrets.UPDATER_URL }}" \
         -H "x-api-key: ${{ secrets.AUTOMATION_KEY }}"
