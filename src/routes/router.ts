@@ -24,7 +24,6 @@ const withKey =
     throw new Response(null, { status: 401 })
   }
 
-//
 const routesMap = {
   ['/get-all-pages']: withKey(getAllPages),
   ['/get-cards-set']: withKey(getCardsSet),
