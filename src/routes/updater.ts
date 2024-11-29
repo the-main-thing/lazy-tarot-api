@@ -31,6 +31,7 @@ export const updater = async (request: Request) => {
   try {
     await cmd('git reset --hard origin/main && git pull')
     await cmd('bun install')
+		await cmd('bun run admin-front-build')
     await cmd('bun run migrations-push')
     exec('pm2 restart tarot-api')
   } catch {
