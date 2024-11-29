@@ -43,6 +43,7 @@ export const router = async (request: Request) => {
       createContext(env.SANITY_STUDIO_PROJECT_ID, request),
     )
   }
+
   if (rootRouteName === '/mobile') {
     const [version, pathName] = restOfTheName
     const routeName = (rootRouteName +
@@ -59,6 +60,7 @@ export const router = async (request: Request) => {
   if (updaterResponse) {
     return updaterResponse
   }
+
   let response = await translationsRouter(request)
   if (response === 'SHOULD_RETURN_UNDEFINED') {
     return undefined as never

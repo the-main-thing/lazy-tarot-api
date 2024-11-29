@@ -63,6 +63,19 @@ const findAndReplaceOrPush = <T>(
 
 const getTranslationsCache = () => {
   let translations: Translations | null = null
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const scheduleGC = () => {
+    if (timeout !== null) {
+      clearTimeout(timeout)
+    }
+    timeout = setTimeout(
+      () => {
+        translations = null
+        timeout = null
+      },
+      1000 * 60 * 10,
+    )
+  }
   const getTranslations = async () => {
     if (!translations) {
       const translationsString = await db.query.translationsContent
@@ -78,6 +91,8 @@ const getTranslationsCache = () => {
       }
       translations = JSON.parse(translationsString) as Translations
     }
+
+    scheduleGC()
 
     return translations
   }
@@ -105,6 +120,8 @@ const getTranslationsCache = () => {
           value,
         },
       })
+
+    scheduleGC()
   }
 
   const importTranslations = async (lang: string, extracted: Extracted) => {
@@ -150,6 +167,8 @@ const getTranslationsCache = () => {
           value,
         },
       })
+
+    scheduleGC()
     return translations
   }
 
@@ -219,7 +238,7 @@ const createSessions = () => {
   >()
   const isValidSession = (login: string) => {
     const expiresAt = sessions.get(login)?.at(0) as number | undefined
-    return Boolean(!expiresAt || Date.now() >= expiresAt)
+    return Boolean(expiresAt && Date.now() < expiresAt)
   }
   const setSession = (login: string, expiresAt: number) => {
     const current = sessions.get(login)

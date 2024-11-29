@@ -1,4 +1,4 @@
-import { isbot } from 'isbot'
+import path from 'node:path'
 import cookie from 'cookie'
 import sanitizeHTML from 'sanitize-html'
 import {
@@ -38,11 +38,11 @@ const isValidSessionCookie = (cookieHeader: string | null) => {
     if (!cookieHeader) {
       return false
     }
-    const login = cookie.parse(cookieHeader)?.[sessionCookieKey]
-    if (!login || !isValidSession(login)) {
+    const sessionId = cookie.parse(cookieHeader)?.[sessionCookieKey]
+    if (!sessionId || !isValidSession(sessionId)) {
       return false
     }
-    setSession(login, Date.now() + cookieAge * 1000)
+    setSession(sessionId, Date.now() + cookieAge * 1000)
     return true
   } catch {
     return false
@@ -59,14 +59,6 @@ const serializeSessionCookie = (login: string) => {
     sameSite: 'lax',
   })
 }
-
-const CORS = {
-  'Access-Control-Max-Age': '86400',
-  'Access-Control-Allow-Credentials': 'true',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'GET, POST',
-  'Access-Control-Allow-Origin': env.TRANSLATIONS_HOST,
-} satisfies HeadersInit
 
 export const translationsRouter = async (
   request: Context['request'],
@@ -87,19 +79,17 @@ export const translationsRouter = async (
   if (response) {
     return response
   }
-  if (isbot(request.headers.get('user-agent'))) {
-    return new Response('Not found', { status: 404 })
-  }
+
   const url = new URL(request.url)
   const cookieHeaderValue = request.headers.get('cookie')
   const authenticated = isValidSessionCookie(cookieHeaderValue)
   if (request.method === 'GET' && url.pathname === '/translations/api/status') {
     return authenticated
-      ? new Response('ok', { status: 200, headers: CORS })
-      : new Response('Unauthorized', { status: 401, headers: CORS })
+      ? new Response('ok', { status: 200 })
+      : new Response('Unauthorized', { status: 401 })
   }
 
-  if (request.method === 'POST' && url.pathname === '/translations/login') {
+  if (request.method === 'POST' && url.pathname === '/login') {
     const formData = await request.formData()
     const login = formData.get('login')
     const password = formData.get('password')
@@ -109,32 +99,24 @@ export const translationsRouter = async (
       typeof login !== 'string' ||
       typeof password !== 'string'
     ) {
-      return new Response(null, { status: 400, headers: CORS })
+      return new Response(null, { status: 400 })
     }
     const user = await authenticate(login, password)
     if (!user) {
-      return new Response(null, { status: 400, headers: CORS })
+      return new Response(null, { status: 400 })
     }
 
     return new Response(null, {
-      status: 200,
       headers: {
-        ...CORS,
+        Location: '/',
         'Set-Cookie': serializeSessionCookie(login),
       },
+      status: 302,
     })
   }
 
-  if (!authenticated) {
-    return new Response('Unauthorized', { status: 401, headers: CORS })
-  }
-
   if (url.pathname === '/translations/api/ws') {
-    if (request.headers.get('origin') !== env.TRANSLATIONS_HOST) {
-      log.error(
-        'Authenticated request from unexpected origin',
-        request.headers.get('origin'),
-      )
+    if (!authenticated) {
       return new Response('Unauthorized', { status: 401 })
     }
     const wsSession =
@@ -142,7 +124,6 @@ export const translationsRouter = async (
       crypto.randomUUID()
     const success = server.get()?.upgrade(request, {
       headers: {
-        ...CORS,
         'Set-Cookie': cookie.serialize('WS_SESSION', wsSession, {
           httpOnly: true,
           sameSite: 'lax',
@@ -159,10 +140,10 @@ export const translationsRouter = async (
     }
   }
 
-  if (request.method !== 'GET') {
-    return new Response('Method Not Allowed', { status: 405 })
+  response = handleClientFilesRequest(request)
+  if (response) {
+    return response
   }
-
   return new Response(null, {
     status: 404,
   })
@@ -407,7 +388,7 @@ async function handleGetTranslations(request: Request) {
       return new Response('Unauthorized', { status: 401 })
     }
     const translations = await getTranslations()
-    return Response.json(translations, { headers: CORS })
+    return Response.json(translations, {})
   }
 }
 
@@ -450,7 +431,7 @@ async function handleUpdate(request: Request) {
           locks,
         }),
       )
-      return new Response('Translation updated', { status: 200, headers: CORS })
+      return new Response('Translation updated', { status: 200 })
     } catch (error) {
       try {
         const locks = await updateLocks()
@@ -481,7 +462,7 @@ async function handleUpdate(request: Request) {
 
 async function handleUpsertUser(request: Request) {
   const url = new URL(request.url)
-  if (url.pathname !== '/translations/api/upsert_user') {
+  if (url.pathname !== '/translations/api/upsert-user') {
     return
   }
 
@@ -489,12 +470,11 @@ async function handleUpsertUser(request: Request) {
     return new Response(null, { status: 400 })
   }
 
-  if (request.headers.get('x-api-key') !== env.AUTOMATION_API_KEY) {
-    return new Response(null, { status: 401 })
-  }
-
   try {
-    const { login, password } = await request.json()
+    const { login, password, key } = await request.json()
+    if (key !== env.AUTOMATION_API_KEY) {
+      return new Response(null, { status: 401 })
+    }
     if (
       typeof login !== 'string' ||
       typeof password !== 'string' ||
@@ -505,7 +485,39 @@ async function handleUpsertUser(request: Request) {
     }
     await upsertUser(login, password)
     return new Response(null, { status: 200 })
-  } catch {
+  } catch (error) {
+    log.error('Error creating user', error)
     return new Response(null, { status: 500 })
+  }
+}
+
+const clientDist = path.resolve(process.cwd(), 'public')
+
+function handleClientFilesRequest(request: Request) {
+  if (request.method !== 'GET') {
+    return
+  }
+  const url = new URL(request.url)
+  if (!isValidSessionCookie(request.headers.get('cookie'))) {
+    if (url.pathname !== '/login') {
+      return Response.redirect('/login', 302)
+    }
+    return new Response(Bun.file(path.join(clientDist, 'login.html')))
+  }
+  if (
+    url.pathname === '/' ||
+    url.pathname === '/index.html' ||
+    url.pathname === '/index'
+  ) {
+    return new Response(Bun.file(path.join(clientDist, 'index.html')), {
+      headers: { 'Cache-Control': 'public max-age=3600' },
+    })
+  }
+  try {
+    return new Response(Bun.file(path.join(clientDist, url.pathname)), {
+      headers: { 'Cache-Control': 'public max-age=3600' },
+    })
+  } catch {
+    return
   }
 }

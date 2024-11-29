@@ -16,11 +16,11 @@ const cmd = (command: string) => {
 
 export const updater = async (request: Request) => {
   if (request.method !== 'POST') {
-    return new Response(null, { status: 404 })
+    return
   }
   const url = new URL(request.url)
   if (url.pathname !== '/updater') {
-    return new Response(null, { status: 404 })
+    return
   }
 
   const { key } = await request.json()
