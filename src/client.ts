@@ -233,8 +233,9 @@ export const createApiClient = ({
         if (error.response.status >= 400 && error.response.status < 500) {
           return 'client-out-of-date'
         }
+        return 'server-is-down'
       }
-      return 'server-down'
+      throw error
     }
   }
 
