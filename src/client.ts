@@ -1,4 +1,3 @@
-import type { Translations } from '@/types'
 import type { RouteData, RouteName, RouteResponses } from './routes/router'
 import type { TypedResponse } from './typedResponse.type'
 import type { Extracted } from './db/translations'
@@ -241,14 +240,20 @@ export const createApiClient = ({
     }
   }
 
-  const importTranslations = async (language: string, extracted: Extracted) => {
+  const importTranslations = async ({
+    language,
+    extracted,
+  }: {
+    language: string
+    extracted: string
+  }) => {
     return await fetchJson(
       '/api/v1/translations/import/:language',
       { language },
       {
         method: 'POST',
         headers,
-        body: JSON.stringify(extracted),
+        body: extracted,
       },
     ).then((r) => r.json())
   }
