@@ -7,7 +7,9 @@ import { urlFor } from './urlFor'
 
 // https://cdn.sanity.io/images/<project id>/<dataset name>/<asset name>-<original width>x<original height>.<original file format>
 const getDimentions = (src: string) => {
-  const url = new URL(src)
+  const url = new URL(
+    src.startsWith('http') ? src : 'https://cdn.sanity.io' + src,
+  )
   const info = url.pathname.split('/').filter(Boolean)[3]
   if (!info) {
     return null
