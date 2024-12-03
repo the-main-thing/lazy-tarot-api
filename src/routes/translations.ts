@@ -327,6 +327,7 @@ async function handleImport(
   console.log(
     'handling import',
     request.method,
+    env.AUTOMATION_API_KEY,
     request.headers.get('x-api-key'),
     request.headers.get('x-api-key') === env.AUTOMATION_API_KEY,
   )
