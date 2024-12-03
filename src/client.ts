@@ -19,6 +19,41 @@ type GetParams<TPath extends RouteName> = {
   [Key in ExtractParams<TPath>]: string
 }
 
+// In order to fight CORS in some cases we have to do some wierd magic
+// i.e. return relative paths from the api and put the origin server
+// into the src.
+// This function will mutate object "recursively"
+const setImageSrc = <TValue>(value: TValue, apiRoot: string): TValue => {
+  const queue = [value] as Array<unknown>
+  while (queue.length) {
+    const currentObject = queue.pop()!
+    if (!currentObject) {
+      continue
+    }
+    if (Array.isArray(currentObject)) {
+      for (const value of currentObject) {
+        queue.push(value)
+      }
+      continue
+    }
+
+    if (typeof currentObject === 'object') {
+      if (
+        'src' in currentObject &&
+        typeof currentObject.src === 'string' &&
+        currentObject.src.startsWith('/')
+      ) {
+        currentObject.src = `${apiRoot}${currentObject.src}`
+      } else {
+        for (const key in currentObject) {
+          queue.push(currentObject[key as never])
+        }
+      }
+    }
+  }
+  return value
+}
+
 export class ApiClientError extends Error {
   readonly isApiClientError = true
   readonly response: Response
@@ -142,7 +177,7 @@ export const createApiClient = ({
       { language },
       getRequestInit,
     )
-    return await response.json()
+    return setImageSrc(await response.json(), apiRoot)
   }
 
   const reportError = async (data: unknown) => {
@@ -160,7 +195,7 @@ export const createApiClient = ({
       { language },
       getRequestInit,
     )
-    return response.json()
+    return setImageSrc(await response.json(), apiRoot)
   }
 
   const getCardById = async (
@@ -170,7 +205,7 @@ export const createApiClient = ({
       '/api/v1/get-card-by-id/:language/:id',
       params,
       getRequestInit,
-    ).then((r) => r.json())
+    ).then((r) => setImageSrc(r.json(), apiRoot))
   }
 
   const getRandomCard = async (
@@ -187,7 +222,7 @@ export const createApiClient = ({
           prevPickedCards: previouslyPickedCards,
         }),
       },
-    ).then((response) => response.json())
+    ).then((response) => setImageSrc(response.json(), apiRoot))
   }
 
   const getTranslations = async () => {
