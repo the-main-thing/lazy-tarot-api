@@ -10,10 +10,6 @@ const getEndpoint = (endpoint: string) => {
 	return `/translations/${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`
 }
 
-export const getAPIEndpointURL = (endpoint: string) => {
-	return new URL(getEndpoint(endpoint), window.location.origin).toString()
-}
-
 export const getWsEndpointURL = (endpoint: string) => {
 	return new URL(getEndpoint(endpoint), window.location.origin)
 		.toString()

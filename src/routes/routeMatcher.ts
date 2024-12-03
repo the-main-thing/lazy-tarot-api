@@ -1,3 +1,16 @@
+/**
+ * I was thinking it would be nice to have a route tree like an object or
+ * a map for fast retrieval. Or a cache for incoming routes i.e.
+ * Map<string, [score, handler]>.
+ *
+ * But! Since routes are all relatively short - 5 segments at most
+ * the computational cost of calculating hashes for retrieving cached value
+ * or getting next node
+ * from a tree is more than just iterate a coulple of times.
+ *
+ * This is scientifically proven by me:
+ * https://github.com/the-main-thing/array-vs-set
+ */
 import type { Context } from 'src/createContext'
 
 export type Params = Record<string, string>

@@ -190,6 +190,39 @@ export const createApiClient = ({
     )
   }
 
+  const updateTranslations = async (formData: FormData) => {
+    const formDataHeaders = new Headers(headers)
+    formDataHeaders.set('Content-Type', 'application/x-www-form-urlencoded')
+    return await fetch(
+      '/api/v1/translations/update',
+      {},
+      {
+        method: 'POST',
+        headers: formDataHeaders,
+        body: formData,
+      },
+    )
+  }
+
+  const getTranslationsStatus = async () => {
+    return await fetch('/api/v1/translations/status', {}, getRequestInit)
+  }
+
+  const translationsLogin = async (formData: FormData) => {
+    const formDataHeaders = new Headers(headers)
+    formDataHeaders.set('Content-Type', 'application/x-www-form-urlencoded')
+    return await fetch(
+      '/login',
+      {},
+      {
+        method: 'POST',
+        headers: formDataHeaders,
+        body: formData,
+      },
+    )
+  }
+
+  const translationsWsEndpoint = apiRoot + '/api/v1/translations/ws'
   return {
     mobileInit,
     getAllPages,
@@ -197,6 +230,10 @@ export const createApiClient = ({
     getCardById,
     getRandomCard,
     getTranslations,
+    updateTranslations,
+    getTranslationsStatus,
+    translationsLogin,
     reportError,
+    translationsWsEndpoint,
   }
 }

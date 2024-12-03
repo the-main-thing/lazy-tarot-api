@@ -11,7 +11,8 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from '../ui/accordion'
-import { getAPIEndpointURL, listenWs } from '@/utils'
+import { listenWs } from '@/utils'
+import { api } from '../../api'
 
 interface Props {
 	lang: string
@@ -38,15 +39,7 @@ const useTranslation = (props: Props) => {
 					'This mutation sould not be called when the key is locked.'
 				)
 			}
-			const response = await fetch(getAPIEndpointURL('/api/update'), {
-				method: 'POST',
-				body: input.formData,
-			})
-			if (response.status >= 400) {
-				throw new Error(
-					(await response.text()) || 'Error updating translation'
-				)
-			}
+			await api.updateTranslations(input.formData)
 			return input
 		},
 		onSettled: () => {
