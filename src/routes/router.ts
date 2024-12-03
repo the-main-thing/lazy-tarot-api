@@ -10,6 +10,7 @@ import { translationsRoutesConfig } from './translations'
 import { updater } from './updater'
 import { routeMatcher, type Params, type RoutesConfig } from './routeMatcher'
 import { UPGRADE_CONNECTION_RESPONSE } from './constants'
+import { handleImageDownload } from './handleImageDownload'
 
 type Handler<TData, TParams extends Params> = (
   context: Context,
@@ -27,6 +28,9 @@ const withKey =
   }
 
 const routesConfig = {
+  ['/images/*']: (context) => {
+    return handleImageDownload(context.request)
+  },
   ['/api/v1/status']: (context) => {
     if (context.request.method === 'GET') {
       return new Response(null, {

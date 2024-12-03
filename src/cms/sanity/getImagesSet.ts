@@ -46,12 +46,13 @@ export const getImagesSet = <TBreakpoints extends Record<number, number>>({
 } => {
   let dimentions = null as null | [width: number, height: number]
   const entries = Object.entries(breakpoints).map(([breakPoint, width]) => {
-    const src = urlFor(client, image)
+    let src = urlFor(client, image)
       .width(width)
       .fit('clip')
       .format(format || 'jpg')
       .quality(breakPoint === 'placeholder' ? 30 : 90)
       .url()
+      .replace(/^https:\/\/cdn\.sanity\.io/, '')
 
     if (dimentions === null) {
       dimentions = getDimentions(src)
