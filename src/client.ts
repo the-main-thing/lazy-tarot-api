@@ -1,6 +1,5 @@
 import type { RouteData, RouteName, RouteResponses } from './routes/router'
 import type { TypedResponse } from './typedResponse.type'
-import type { Extracted } from './db/translations'
 
 export type Init = Pick<RequestInit, 'method' | 'headers' | 'body'>
 

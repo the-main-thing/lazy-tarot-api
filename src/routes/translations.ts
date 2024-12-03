@@ -324,6 +324,12 @@ async function handleImport(
   request: Request,
   { language }: { language: string },
 ) {
+  console.log(
+    'handling import',
+    request.method,
+    request.headers.get('x-api-key'),
+    request.headers.get('x-api-key') === env.AUTOMATION_API_KEY,
+  )
   if (
     request.method === 'POST' &&
     request.headers.get('x-api-key') === env.AUTOMATION_API_KEY
