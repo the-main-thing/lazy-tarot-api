@@ -13,8 +13,10 @@ import {
 import { env } from '../env'
 import { log } from '../cms/utils/log'
 import { server } from '../server'
-import type { Context } from '../createContext'
+import { jsonResponse } from 'src/jsonResponse'
 import type { WebSocketHandler } from 'bun'
+import type { RoutesConfig } from './routeMatcher'
+import { UPGRADE_CONNECTION_RESPONSE } from './constants'
 
 const cookieAge = 60 * 60 * 1
 const TEN_MINUTES_MS = 1000 * 60 * 10
@@ -60,62 +62,57 @@ const serializeSessionCookie = (login: string) => {
   })
 }
 
-export const translationsRouter = async (
-  request: Context['request'],
-): Promise<Response | 'SHOULD_RETURN_UNDEFINED'> => {
-  let response = await handleImport(request)
-  if (response) {
-    return response
-  }
-  response = await handleUpsertUser(request)
-  if (response) {
-    return response
-  }
-  response = await handleGetTranslations(request)
-  if (response) {
-    return response
-  }
-  response = await handleUpdate(request)
-  if (response) {
-    return response
-  }
-
-  const url = new URL(request.url)
-  const cookieHeaderValue = request.headers.get('cookie')
-  const authenticated = isValidSessionCookie(cookieHeaderValue)
-  if (request.method === 'GET' && url.pathname === '/translations/api/status') {
-    return authenticated
-      ? new Response('ok', { status: 200 })
-      : new Response('Unauthorized', { status: 401 })
-  }
-
-  if (request.method === 'POST' && url.pathname === '/login') {
-    const formData = await request.formData()
-    const login = formData.get('login')
-    const password = formData.get('password')
-    if (
-      !login ||
-      !password ||
-      typeof login !== 'string' ||
-      typeof password !== 'string'
-    ) {
-      return new Response(null, { status: 400 })
+export const translationsRoutesConfig = {
+  ['/api/v1/translations/import/:language']: (context, params) =>
+    handleImport(context.request, params as never),
+  ['/api/v1/translations/upsert-user']: (context) =>
+    handleUpsertUser(context.request),
+  ['/api/v1/translations/get']: (context) =>
+    handleGetTranslations(context.request),
+  ['/api/v1/translations/update']: (context) => handleUpdate(context.request),
+  ['/api/v1/translations/status']: (context) => {
+    if (context.request.method === 'GET') {
+      const cookieHeaderValue = context.request.headers.get('cookie')
+      const authenticated = isValidSessionCookie(cookieHeaderValue)
+      return authenticated
+        ? new Response('ok', { status: 200 })
+        : new Response('Unauthorized', { status: 401 })
     }
-    const user = await authenticate(login, password)
-    if (!user) {
-      return new Response(null, { status: 400 })
+  },
+  ['/login']: async ({ request }) => {
+    if (request.method === 'GET') {
+      return new Response(Bun.file(path.join(clientDist, 'login.html')))
     }
+    if (request.method === 'POST') {
+      const formData = await request.formData()
+      const login = formData.get('login')
+      const password = formData.get('password')
+      if (
+        !login ||
+        !password ||
+        typeof login !== 'string' ||
+        typeof password !== 'string'
+      ) {
+        return new Response(null, { status: 400 })
+      }
+      const user = await authenticate(login, password)
+      if (!user) {
+        return new Response(null, { status: 400 })
+      }
 
-    return new Response(null, {
-      headers: {
-        Location: '/',
-        'Set-Cookie': serializeSessionCookie(login),
-      },
-      status: 302,
-    })
-  }
+      return new Response(null, {
+        headers: {
+          Location: '/',
+          'Set-Cookie': serializeSessionCookie(login),
+        },
+        status: 302,
+      })
+    }
+  },
+  ['/api/v1/translations/ws']: ({ request }) => {
+    const cookieHeaderValue = request.headers.get('cookie')
+    const authenticated = isValidSessionCookie(cookieHeaderValue)
 
-  if (url.pathname === '/translations/api/ws') {
     if (!authenticated) {
       return new Response('Unauthorized', { status: 401 })
     }
@@ -136,18 +133,17 @@ export const translationsRouter = async (
     if (success) {
       // Bun automatically returns a 101 Switching Protocols
       // if the upgrade succeeds
-      return 'SHOULD_RETURN_UNDEFINED' as const
+      return UPGRADE_CONNECTION_RESPONSE
     }
-  }
+  },
+  ['/*']: ({ request }) => {
+    if (request.method !== 'GET') {
+      return
+    }
+    return handleClientFilesRequest(request)
+  },
+} as const satisfies RoutesConfig
 
-  response = handleClientFilesRequest(request)
-  if (response) {
-    return response
-  }
-  return new Response(null, {
-    status: 404,
-  })
-}
 export const translationsWebsocketConfig: WebSocketHandler = {
   open: (ws) => {
     ws.subscribe('BROADCAST')
@@ -323,18 +319,11 @@ async function updateLocks() {
   return locks
 }
 
-async function handleImport(request: Request) {
-  const url = new URL(request.url)
-  // /translations/api/importPath/:language
-  const [translations, api, importPath, language, ...rest] = url.pathname
-    .split('/')
-    .filter(Boolean)
+async function handleImport(
+  request: Request,
+  { language }: { language: string },
+) {
   if (
-    translations === 'translations' &&
-    api === 'api' &&
-    importPath === 'import' &&
-    language &&
-    rest.length === 0 &&
     request.method === 'POST' &&
     request.headers.get('x-api-key') === env.AUTOMATION_API_KEY
   ) {
@@ -350,7 +339,11 @@ async function handleImport(request: Request) {
           translations,
         }),
       )
-      return Response.json(translations)
+      const [data, error] = jsonResponse(translations)
+      if (error) {
+        throw error.error
+      }
+      return data
     } catch (error) {
       try {
         const locks = await updateLocks()
@@ -372,28 +365,30 @@ async function handleImport(request: Request) {
         error.message
       ) {
         console.error(`Error importing translations: ${error.message}`)
-        return new Response(error.message, { status: 500 })
+        throw new Response(error.message, { status: 500 })
       }
       console.error('Unknown error importing translations', error)
-      return new Response('Internal Server Error', { status: 500 })
+      throw new Response('Internal Server Error', { status: 500 })
     }
   }
 }
 
 async function handleGetTranslations(request: Request) {
-  const url = new URL(request.url)
-  if (url.pathname === '/translations/api/get' && request.method === 'GET') {
+  if (request.method === 'GET') {
     const cookieHeaderValue = request.headers.get('cookie')
     if (!isValidSessionCookie(cookieHeaderValue)) {
-      return new Response('Unauthorized', { status: 401 })
+      throw new Response('Unauthorized', { status: 401 })
     }
     const translations = await getTranslations()
-    return Response.json(translations, {})
+    const [data, error] = jsonResponse(translations)
+    if (error) {
+      throw error.error
+    }
+    return data
   }
 }
 
 async function handleUpdate(request: Request) {
-  const url = new URL(request.url)
   const cookieHeaderValue = request.headers.get('cookie')
   const authenticated =
     isValidSessionCookie(cookieHeaderValue) ||
@@ -401,10 +396,7 @@ async function handleUpdate(request: Request) {
   if (!authenticated) {
     return new Response('Unauthorized', { status: 401 })
   }
-  if (
-    url.pathname === '/translations/api/update' &&
-    request.method === 'POST'
-  ) {
+  if (request.method === 'POST') {
     try {
       const formData = await request.formData()
       const message = sanitize(formData.get('message')).trim()
@@ -461,11 +453,6 @@ async function handleUpdate(request: Request) {
 }
 
 async function handleUpsertUser(request: Request) {
-  const url = new URL(request.url)
-  if (url.pathname !== '/translations/api/upsert-user') {
-    return
-  }
-
   if (request.method !== 'POST') {
     return new Response(null, { status: 400 })
   }
@@ -502,7 +489,7 @@ function handleClientFilesRequest(request: Request) {
     if (url.pathname !== '/login') {
       return Response.redirect('/login', 302)
     }
-    return new Response(Bun.file(path.join(clientDist, 'login.html')))
+    return
   }
   if (
     url.pathname === '/' ||

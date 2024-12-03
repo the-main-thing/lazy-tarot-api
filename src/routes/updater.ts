@@ -18,10 +18,6 @@ export const updater = async (request: Request) => {
   if (request.method !== 'POST') {
     return
   }
-  const url = new URL(request.url)
-  if (url.pathname !== '/updater') {
-    return
-  }
 
   const { key } = await request.json()
   if (key !== env.AUTOMATION_API_KEY) {

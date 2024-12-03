@@ -1,3 +1,3 @@
-export type TypedResponse<T = unknown> = Omit<Response, 'json'> & {
-	json(): Promise<T>
+export interface TypedResponse<T = unknown> extends Omit<Response, 'json'> {
+  json: () => Promise<T>
 }
