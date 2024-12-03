@@ -63,13 +63,8 @@ const serializeSessionCookie = (login: string) => {
 }
 
 export const translationsRoutesConfig = {
-  ['/api/v1/translations/import/:language']: (context, params) =>
-    handleImport(context.request, params as never),
-  ['/api/v1/translations/upsert-user']: (context) =>
-    handleUpsertUser(context.request),
   ['/api/v1/translations/get']: (context) =>
     handleGetTranslations(context.request),
-  ['/api/v1/translations/update']: (context) => handleUpdate(context.request),
   ['/api/v1/translations/status']: (context) => {
     if (context.request.method === 'GET') {
       const cookieHeaderValue = context.request.headers.get('cookie')
@@ -79,6 +74,39 @@ export const translationsRoutesConfig = {
         : new Response('Unauthorized', { status: 401 })
     }
   },
+  ['/api/v1/translations/ws']: ({ request }) => {
+    const cookieHeaderValue = request.headers.get('cookie')
+    const authenticated = isValidSessionCookie(cookieHeaderValue)
+
+    if (!authenticated) {
+      return new Response('Unauthorized', { status: 401 })
+    }
+    const wsSession =
+      cookie.parse(request.headers.get('cookie') || '')?.['WS_SESSION'] ||
+      crypto.randomUUID()
+    const success = server.get()?.upgrade(request, {
+      headers: {
+        'Set-Cookie': cookie.serialize('WS_SESSION', wsSession, {
+          httpOnly: true,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: cookieAge,
+        }),
+      },
+      data: { wsSession },
+    })
+    if (success) {
+      // Bun automatically returns a 101 Switching Protocols
+      // if the upgrade succeeds
+      return UPGRADE_CONNECTION_RESPONSE
+    }
+  },
+  ['/api/v1/translations/update']: (context) => handleUpdate(context.request),
+  ['/api/v1/translations/import/:language']: (context, params) =>
+    handleImport(context.request, params as never),
+  ['/api/v1/translations/upsert-user']: (context) =>
+    handleUpsertUser(context.request),
+
   ['/login']: async ({ request }) => {
     if (request.method === 'GET') {
       return new Response(Bun.file(path.join(clientDist, 'login.html')))
@@ -107,33 +135,6 @@ export const translationsRoutesConfig = {
         },
         status: 302,
       })
-    }
-  },
-  ['/api/v1/translations/ws']: ({ request }) => {
-    const cookieHeaderValue = request.headers.get('cookie')
-    const authenticated = isValidSessionCookie(cookieHeaderValue)
-
-    if (!authenticated) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-    const wsSession =
-      cookie.parse(request.headers.get('cookie') || '')?.['WS_SESSION'] ||
-      crypto.randomUUID()
-    const success = server.get()?.upgrade(request, {
-      headers: {
-        'Set-Cookie': cookie.serialize('WS_SESSION', wsSession, {
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          maxAge: cookieAge,
-        }),
-      },
-      data: { wsSession },
-    })
-    if (success) {
-      // Bun automatically returns a 101 Switching Protocols
-      // if the upgrade succeeds
-      return UPGRADE_CONNECTION_RESPONSE
     }
   },
   ['/*']: ({ request }) => {

@@ -1,5 +1,7 @@
+import type { Translations } from '@/types'
 import type { RouteData, RouteName, RouteResponses } from './routes/router'
 import type { TypedResponse } from './typedResponse.type'
+import type { Extracted } from './db/translations'
 
 export type Init = Pick<RequestInit, 'method' | 'headers' | 'body'>
 
@@ -239,6 +241,18 @@ export const createApiClient = ({
     }
   }
 
+  const importTranslations = async (language: string, extracted: Extracted) => {
+    return await fetchJson(
+      '/api/v1/translations/import/:language',
+      { language },
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(extracted),
+      },
+    ).then((r) => r.json())
+  }
+
   return {
     mobileInit,
     getAllPages,
@@ -247,6 +261,7 @@ export const createApiClient = ({
     getRandomCard,
     getTranslations,
     updateTranslations,
+    importTranslations,
     getTranslationsStatus,
     translationsLogin,
     reportError,
