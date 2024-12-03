@@ -39,7 +39,10 @@ class TranslationRecord {
     }
 
     this.description = ''
-    this.translations = []
+    this.translations = SUPPORTED_LANGUAGES.map((lang) => ({
+      lang,
+      message: '',
+    }))
   }
 }
 
@@ -144,9 +147,7 @@ const getTranslationsCache = () => {
       )
       translations[key] = translation
     }
-    for (const key of Object.keys(translations) as Array<
-      keyof typeof translations
-    >) {
+    for (const key of Object.keys(translations) as Array<keyof typeof translations>) {
       if (key in extracted) {
         continue
       }
