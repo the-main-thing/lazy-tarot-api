@@ -132,7 +132,7 @@ export const TranslationItem = memo((props: Props) => {
 									<Label
 										htmlFor={`${props.translationKey}-${props.lang}`}
 									>
-										<div className="pb-2">Перевод для </div>
+										<div className="pb-2">Текст</div>
 									</Label>
 
 									<Textarea

@@ -179,7 +179,6 @@ function App() {
 
   const lock = useCallback(
     ({ key, id }: { key: string; id: string }) => {
-      console.log('Locking', key, id)
       if (!ws) {
         return
       }
@@ -222,7 +221,7 @@ function App() {
     [ws],
   )
 
-  const [filterTranslated, setFilterTranslated] = useState(false)
+  const [filterTranslated, setFilterTranslated] = useState(true)
   const filteredTranslations = useMemo(() => {
     if (!filterTranslated || !translations) {
       return translations
@@ -271,7 +270,7 @@ function App() {
                     <ul>
                       {messages.map((record) => {
                         return (
-                          <li>
+                          <li key={key + record.lang}>
                             <TranslationItem
                               translationKey={key}
                               id={id}
