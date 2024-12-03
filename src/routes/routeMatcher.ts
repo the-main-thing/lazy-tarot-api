@@ -107,7 +107,7 @@ export const routeMatcher = (
     }
   }
 
-  if (bestMatchIndex <= 0) {
+  if (bestMatchIndex < 0) {
     return [null, null]
   }
 
