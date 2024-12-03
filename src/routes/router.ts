@@ -15,9 +15,6 @@ type Handler<TData, TParams extends Params> = (
   context: Context,
   params: TParams,
 ) => Promise<TypedResponse<TData>>
-type RouterGuardType = {
-  [routeName: `/${string}`]: Handler<unknown, any>
-}
 
 const withKey =
   <TData, TParams extends Params>(routeHandler: Handler<TData, TParams>) =>
@@ -30,6 +27,13 @@ const withKey =
   }
 
 const routesConfig = {
+  ['/api/v1/status']: (context) => {
+    if (context.request.method === 'GET') {
+      return new Response(null, {
+        status: 200,
+      })
+    }
+  },
   ['/api/v1/get-all-pages/:language']: (context, params) =>
     withKey(getAllPages)(context, params as never),
   ['/api/v1/get-cards-set/:language']: (context, params) =>
@@ -72,7 +76,7 @@ export const router = async (request: Request) => {
 export type Router = typeof routesConfig
 export type RouteName = keyof Router
 export type RouteResponses = {
-	[routeName in RouteName]: Awaited<ReturnType<Router[routeName]>>
+  [routeName in RouteName]: Awaited<ReturnType<Router[routeName]>>
 }
 type JSONData<T extends TypedResponse<any>> = Awaited<ReturnType<T['json']>>
 type ExtractData<T extends Router[RouteName]> =

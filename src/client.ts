@@ -223,6 +223,21 @@ export const createApiClient = ({
   }
 
   const translationsWsEndpoint = apiRoot + '/api/v1/translations/ws'
+
+  const getApiStatus = async () => {
+    try {
+      await fetch('/api/v1/status', {}, getRequestInit)
+      return 'server-up'
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        if (error.response.status >= 400 && error.response.status < 500) {
+          return 'client-out-of-date'
+        }
+      }
+      return 'server-down'
+    }
+  }
+
   return {
     mobileInit,
     getAllPages,
@@ -235,5 +250,6 @@ export const createApiClient = ({
     translationsLogin,
     reportError,
     translationsWsEndpoint,
+    getApiStatus,
   }
 }
