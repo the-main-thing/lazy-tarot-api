@@ -105,9 +105,15 @@ export const createApiClient = ({
     Accept: 'application/json',
     'Content-Type': 'application/json',
   })
-  if (apiKey) {
-    headers.set('x-api-key', apiKey)
+
+  const setApiKey = (newApiKey?: string) => {
+    const key = newApiKey || apiKey
+    if (key) {
+      headers.set('x-api-key', key)
+    }
   }
+
+  setApiKey(apiKey)
 
   const getRequestInit: Init = {
     method: 'GET',
@@ -271,5 +277,6 @@ export const createApiClient = ({
     reportError,
     translationsWsEndpoint,
     getApiStatus,
+    __setApiKey: setApiKey,
   }
 }
