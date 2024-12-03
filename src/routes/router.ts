@@ -29,6 +29,7 @@ const withKey =
 
 const routesConfig = {
   ['/images/*']: (context) => {
+    console.log('/images', context.request.url)
     return handleImageDownload(context.request)
   },
   ['/api/v1/status']: (context) => {
