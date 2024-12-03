@@ -374,10 +374,21 @@ async function handleImport(
   }
 }
 
+const CAN_VIEW_TRANSLATIONS_KEYS = [
+  env.MOBILE_CLIENT_API_KEY,
+  env.LAZY_TAROT_API_KEY,
+  env.AUTOMATION_API_KEY,
+]
+const canGetTranslations = (headers: Headers): boolean => {
+  return (
+    CAN_VIEW_TRANSLATIONS_KEYS.includes(headers.get('x-api-key') as never) ||
+    isValidSessionCookie(headers.get('cookie'))
+  )
+}
+
 async function handleGetTranslations(request: Request) {
   if (request.method === 'GET') {
-    const cookieHeaderValue = request.headers.get('cookie')
-    if (!isValidSessionCookie(cookieHeaderValue)) {
+    if (!canGetTranslations(request.headers)) {
       throw new Response('Unauthorized', { status: 401 })
     }
     const translations = await getTranslations()
