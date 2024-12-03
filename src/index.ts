@@ -1,6 +1,6 @@
 export type { RouteName, RouteData, Router } from './routes/router'
 export {
-	ApiClient,
+	createApiClient,
 	ApiClientError,
 	type Init,
 	type MakeRequest,

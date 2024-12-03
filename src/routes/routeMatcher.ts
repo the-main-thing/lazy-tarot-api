@@ -15,17 +15,22 @@ import type { Context } from 'src/createContext'
 
 export type Params = Record<string, string>
 
-const getSegments = (string: string): Array<string> => {
+export const getSegments = (string: string): Array<string> => {
   const result: Array<string> = []
   let currentSegment = ''
   for (let i = 0; i < string.length; i++) {
     const char = string.charAt(i)
-    if (char === '/' && currentSegment) {
-      result.push(currentSegment)
-      currentSegment = ''
+    if (char === '/') {
+      if (currentSegment) {
+        result.push(currentSegment)
+        currentSegment = ''
+      }
       continue
     }
     currentSegment += char
+  }
+  if (currentSegment) {
+    result.push(currentSegment)
   }
   return result
 }
@@ -38,18 +43,19 @@ const matchRoute = (
   let matches = 0
   const params: Params = {}
   for (let i = 0; i < routeSegments.length; i++) {
+    const routeSegment = routeSegments[i]!
+    if (routeSegment.charAt(0) === '*') {
+      matches += 0.5
+      continue
+    }
+
     const urlSegment = urlSegments[i]
     if (!urlSegment) {
       break
     }
-    const routeSegment = routeSegments[i]!
     if (routeSegment.charAt(0) === ':') {
       matches += 0.75
       params[routeSegment.slice(1)] = urlSegment
-      continue
-    }
-    if (routeSegment.charAt(0) === '*') {
-      matches += 0.5
       continue
     }
 
@@ -60,7 +66,9 @@ const matchRoute = (
   }
 
   return [
-    (matches / Math.max(urlSegments.length, routeSegments.length)) * 100,
+    matches && routeSegments.length
+      ? (matches / routeSegments.length) * 100
+      : 0,
     params,
   ]
 }
@@ -89,6 +97,9 @@ export const routeMatcher = (
   const urlSegments = getSegments(url.pathname)
   for (let i = 0; i < routesEntries.length; i++) {
     const [score, params] = matchRoute(urlSegments, routesEntries[i]![0])
+    if (score >= 100) {
+      return [routesEntries[i]![1], params]
+    }
     if (bestMatch < score) {
       bestMatch = score
       bestMatchIndex = i
