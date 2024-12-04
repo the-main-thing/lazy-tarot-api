@@ -89,17 +89,34 @@ export const createApiClient = ({
     params: GetParams<TPath>,
     init?: Init,
   ): Promise<Response> => {
-    if (routeName === '/api/v1/init' && initPromise) {
-      return initPromise
+    if (routeName === '/api/v1/init') {
+      const promise = initPromise
+        ? initPromise
+        : makeRequest(apiRoot + injectParams(routeName, params), init).then(
+            (r) => {
+              ready = true
+              setTimeout(() => {
+                if (promise === initPromise) {
+                  initPromise = null
+                }
+              }, 4000)
+              return r
+            },
+          )
+      initPromise = promise
+      return promise
     }
     if (!ready && !initPromise) {
       let status = 1000
       while (status >= 400) {
-        initPromise = makeRequest(apiRoot + '/api/v1/init', {
-          method: 'GET',
-          headers,
-        })
-        const response = await initPromise
+        const response = await fetch(
+          '/api/v1/init',
+          {},
+          {
+            method: 'GET',
+            headers,
+          },
+        )
         void response
           .text()
           .then(() => void 0)
@@ -116,13 +133,6 @@ export const createApiClient = ({
           })
         }
       }
-      ready = true
-      let currentInitPromise = initPromise
-      setTimeout(() => {
-        if (currentInitPromise === initPromise) {
-          initPromise = null
-        }
-      }, 4000)
     }
     const response = await makeRequest(
       apiRoot + injectParams(routeName, params),
