@@ -114,7 +114,12 @@ export const createApiClient = ({
         }
       }
       ready = true
-      initPromise = null
+      let currentInitPromise = initPromise
+      setTimeout(() => {
+        if (currentInitPromise === initPromise) {
+          initPromise = null
+        }
+      }, 4000)
     }
     const response = await makeRequest(
       apiRoot + injectParams(routeName, params),
