@@ -157,8 +157,18 @@ export const createApiClient = ({
   }
 
   const init = async () => {
-    const promise = initPromise || fetchJson('/api/v1/init', getRequestInit)
-    return await promise.then((r) => r.json())
+    if (!initPromise) {
+      initPromise = fetchJson('/api/v1/init', getRequestInit)
+    }
+    const promise = initPromise
+    return await initPromise.then((r) => {
+      setTimeout(() => {
+        if (initPromise === promise) {
+          initPromise = null
+        }
+      }, 4000)
+      return r.json()
+    })
   }
 
   const getAllPages = async (language: string) => {
