@@ -89,6 +89,9 @@ export const createApiClient = ({
     params: GetParams<TPath>,
     init?: Init,
   ): Promise<Response> => {
+    if (routeName === '/api/v1/init' && initPromise) {
+      return initPromise
+    }
     if (!ready && !initPromise) {
       let status = 1000
       while (status >= 400) {
