@@ -82,18 +82,21 @@ export const createApiClient = ({
     'Content-Type': 'application/json',
   })
 
+  let initPromise: Promise<any> | null = null
+
   const fetch = async <TPath extends RouteName>(
     routeName: TPath,
     params: GetParams<TPath>,
     init?: Init,
   ): Promise<Response> => {
-    if (!ready) {
+    if (!ready && !initPromise) {
       let status = 1000
       while (status >= 400) {
-        const response = await makeRequest(apiRoot + '/api/v1/init', {
+        initPromise = makeRequest(apiRoot + '/api/v1/init', {
           method: 'GET',
           headers,
         })
+        const response = await initPromise
         void response
           .text()
           .then(() => void 0)

@@ -13,9 +13,11 @@ export const init = (context: Context) => {
         defaultLanguage,
       },
       {
-        headers: {
-          'Set-Cookie': session.create(),
-        },
+        headers: !session.isValid(context.request.headers.get('cookie'))
+          ? {
+              'Set-Cookie': session.create(),
+            }
+          : undefined,
       },
     )
     if (!response || error) {
