@@ -131,9 +131,7 @@ export const createApiClient = ({
         json,
       )
     }
-    headers.set('x-api-key', json.key)
-    const { key: _, ...data } = json
-    return data
+		return json
   }
 
   const getAllPages = async (language: string) => {
@@ -277,6 +275,6 @@ export const createApiClient = ({
     reportError,
     translationsWsEndpoint,
     getApiStatus,
-    __setApiKey: setApiKey,
+    setApiKey,
   }
 }
