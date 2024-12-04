@@ -82,7 +82,7 @@ export const createApiClient = ({
     'Content-Type': 'application/json',
   })
 
-  let initPromise: Promise<any> | null = null
+  let initPromise: Promise<FetchJsonResponse<'/api/v1/init'>> | null = null
 
   const fetch = async <TPath extends RouteName>(
     routeName: TPath,
@@ -114,6 +114,7 @@ export const createApiClient = ({
         }
       }
       ready = true
+      initPromise = null
     }
     const response = await makeRequest(
       apiRoot + injectParams(routeName, params),
@@ -150,8 +151,9 @@ export const createApiClient = ({
     headers,
   }
 
-  const mobileInit = async () => {
-    return await fetchJson('/api/v1/init', getRequestInit).then((r) => r.json())
+  const init = async () => {
+    const promise = initPromise || fetchJson('/api/v1/init', getRequestInit)
+    return await promise.then((r) => r.json())
   }
 
   const getAllPages = async (language: string) => {
@@ -282,7 +284,7 @@ export const createApiClient = ({
   }
 
   return {
-    mobileInit,
+    init,
     getAllPages,
     getCardsSet,
     getCardById,
