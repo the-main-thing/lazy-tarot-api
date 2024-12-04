@@ -95,11 +95,9 @@ export const createApiClient = ({
         : makeRequest(apiRoot + injectParams(routeName, params), init).then(
             (r) => {
               ready = true
-              setTimeout(() => {
-                if (promise === initPromise) {
-                  initPromise = null
-                }
-              }, 4000)
+              if (promise === initPromise) {
+                initPromise = null
+              }
               return r
             },
           )
@@ -170,45 +168,31 @@ export const createApiClient = ({
   }
 
   const init = async () => {
-    if (!initPromise) {
-      initPromise = fetchJson('/api/v1/init', getRequestInit)
-    }
-    const promise = initPromise
-    return await initPromise.then((r) => {
-      setTimeout(() => {
-        if (initPromise === promise) {
-          initPromise = null
-        }
-      }, 4000)
-      return r.json()
-    })
+    return await fetchJson('/api/v1/init', getRequestInit).then((r) => r.json())
   }
 
   const getAllPages = async (language: string) => {
-    const response = await fetchJson(
+    return await fetchJson(
       '/api/v1/get-all-pages/:language',
       { language },
       getRequestInit,
-    )
-    return await response.json()
+    ).then((r) => r.json())
   }
 
   const reportError = async (data: unknown) => {
-    const response = await fetchJson('/api/v1/mobile/error', {
+    return await fetchJson('/api/v1/mobile/error', {
       method: 'POST',
       headers: headers,
       body: JSON.stringify(data),
-    })
-    return response.json()
+    }).then((r) => r.json())
   }
 
   const getCardsSet = async (language: string) => {
-    const response = await fetchJson(
+    return await fetchJson(
       '/api/v1/get-cards-set/:language',
       { language },
       getRequestInit,
-    )
-    return response.json()
+    ).then((r) => r.json())
   }
 
   const getCardById = async (
