@@ -17,6 +17,7 @@ import { jsonResponse } from 'src/jsonResponse'
 import type { WebSocketHandler } from 'bun'
 import type { RoutesConfig } from './routeMatcher'
 import { UPGRADE_CONNECTION_RESPONSE } from './constants'
+import { session } from './session'
 
 const cookieAge = 60 * 60 * 1
 const TEN_MINUTES_MS = 1000 * 60 * 10
@@ -382,7 +383,8 @@ const CAN_VIEW_TRANSLATIONS_KEYS = [
 const canGetTranslations = (headers: Headers): boolean => {
   return (
     CAN_VIEW_TRANSLATIONS_KEYS.includes(headers.get('x-api-key') as never) ||
-    isValidSessionCookie(headers.get('cookie'))
+    isValidSessionCookie(headers.get('cookie')) ||
+    session.isValid(headers.get('cookie'))
   )
 }
 

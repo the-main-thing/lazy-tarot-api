@@ -1,22 +1,28 @@
 import { SUPPORTED_LANGUAGES, defaultLanguage } from '../cms/sanity/constants'
-import { env } from '../env'
 import { notFoundResponse } from '../notFoundResponse'
 import { jsonResponse } from '../jsonResponse'
 import { log } from '../cms/utils/log'
 import type { Context } from '../createContext'
+import { session } from './session'
 
-export const mobileInit = (context: Context) => {
+export const init = (context: Context) => {
   if (context.request.method.toUpperCase() === 'GET') {
-    const [response, error] = jsonResponse({
-      key: env.MOBILE_CLIENT_API_KEY,
-      SUPPORTED_LANGUAGES,
-      defaultLanguage,
-    })
+    const [response, error] = jsonResponse(
+      {
+        SUPPORTED_LANGUAGES,
+        defaultLanguage,
+      },
+      {
+        headers: {
+          'Set-Cookie': session.create(),
+        },
+      },
+    )
     if (!response || error) {
       throw (
         error ||
         (() => {
-          log.error('mobileInit: error during creation of jsonResponse')
+          log.error('init: error during creation of jsonResponse')
           return new Response('Internal error', {
             status: 500,
           })
@@ -28,4 +34,3 @@ export const mobileInit = (context: Context) => {
 
   throw notFoundResponse()
 }
-

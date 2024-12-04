@@ -1,3 +1,4 @@
+import { randInt } from './cms/utils/number'
 import type { RouteData, RouteName, RouteResponses } from './routes/router'
 import type { TypedResponse } from './typedResponse.type'
 
@@ -69,17 +70,48 @@ export const createApiClient = ({
   apiKey,
   makeRequest,
 }: CreateApiClientParams) => {
+  let ready = Boolean(apiKey)
   apiRoot = apiRoot.endsWith('/')
     ? (apiRoot.slice(0, -1) as typeof apiRoot)
     : apiRoot
   // validate url
   void new URL(apiRoot)
 
+  const headers = new Headers({
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  })
+
   const fetch = async <TPath extends RouteName>(
     routeName: TPath,
     params: GetParams<TPath>,
     init?: Init,
   ): Promise<Response> => {
+    if (!ready) {
+      let status = 1000
+      while (status >= 400) {
+        const response = await makeRequest(apiRoot + '/api/v1/init', {
+          method: 'GET',
+          headers,
+        })
+        void response
+          .text()
+          .then(() => void 0)
+          .catch(() => void 0)
+        status = response.status
+        if (status >= 400) {
+          await new Promise<void>((resolve) => {
+            setTimeout(
+              () => {
+                resolve()
+              },
+              randInt(1000, 10000),
+            )
+          })
+        }
+      }
+      ready = true
+    }
     const response = await makeRequest(
       apiRoot + injectParams(routeName, params),
       init,
@@ -101,11 +133,6 @@ export const createApiClient = ({
     return fetch(routeName, params, init) as never
   }
 
-  const headers = new Headers({
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  })
-
   const setApiKey = (newApiKey?: string) => {
     const key = newApiKey || apiKey
     if (key) {
@@ -121,17 +148,7 @@ export const createApiClient = ({
   }
 
   const mobileInit = async () => {
-    const response = await fetchJson('/api/v1/mobile/init', getRequestInit)
-    const json = await response.json()
-
-    if (!json.key) {
-      throw new ApiClientError(
-        '/api/v1/mobile/init returned unexpected result',
-        response,
-        json,
-      )
-    }
-		return json
+    return await fetchJson('/api/v1/init', getRequestInit).then((r) => r.json())
   }
 
   const getAllPages = async (language: string) => {

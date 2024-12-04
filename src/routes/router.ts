@@ -2,7 +2,7 @@ import { createContext, type Context } from '../createContext'
 import { getAllPages } from './pages'
 import { getCardsSet, getCardById, getRandomCard } from './tarot'
 import { postMobileError } from './clientErrors'
-import { mobileInit } from './mobileInit'
+import { init } from './init'
 import { hasValidKey } from './hasValidKey'
 import { env } from '../env'
 import type { TypedResponse } from '../typedResponse.type'
@@ -11,6 +11,7 @@ import { updater } from './updater'
 import { routeMatcher, type Params, type RoutesConfig } from './routeMatcher'
 import { UPGRADE_CONNECTION_RESPONSE } from './constants'
 import { handleImageDownload } from './handleImageDownload'
+import { session } from './session'
 
 type Handler<TData, TParams extends Params> = (
   context: Context,
@@ -48,7 +49,7 @@ const routesConfig = {
     withKey(getRandomCard)(context, params as never),
   ['/api/v1/mobile/error']: (context, params) =>
     withKey(postMobileError)(context, params as never),
-  ['/api/v1/mobile/init']: (context) => mobileInit(context),
+  ['/api/v1/init']: (context) => init(context),
   ['/api/v1/updater']: (context) => updater(context.request),
   ...translationsRoutesConfig,
 } as const satisfies RoutesConfig
