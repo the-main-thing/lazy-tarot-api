@@ -384,7 +384,8 @@ const canGetTranslations = (headers: Headers): boolean => {
   return (
     CAN_VIEW_TRANSLATIONS_KEYS.includes(headers.get('x-api-key') as never) ||
     isValidSessionCookie(headers.get('cookie')) ||
-    session.isValid(headers.get('cookie'))
+    session.isValid(headers.get('cookie')) ||
+    session.isValid(headers.get('x-api-key'))
   )
 }
 
