@@ -5,7 +5,11 @@ import { server as serverGlobal } from './server'
 import { translationsWebsocketConfig } from './routes/translations'
 import { UPGRADE_CONNECTION_RESPONSE } from './routes/constants'
 
-const allowedOrigins = ['capacitor://localhost', 'ionic://localhost']
+const allowedOrigins = [
+  'capacitor://localhost',
+  'ionic://localhost',
+  'https://lazy-tarot-mobile.vercel.app',
+]
 
 const addCors = (request: Request, response: Response) => {
   const origin = new URL(
