@@ -2,7 +2,7 @@ import cookie from 'cookie'
 import { randInt } from '../cms/utils/number'
 
 const sessionCookieKey =
-  process.env.NODE_ENV === 'development' ? 'session' : '__Secure-Session'
+  process.env.NODE_ENV !== 'development_____' ? 'session' : '__Secure-Session'
 
 const secrets = Array(10)
   .fill('')
