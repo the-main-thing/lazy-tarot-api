@@ -25,7 +25,7 @@ export const session = {
         secure: process.env.NODE_ENV !== 'development',
         httpOnly: true,
         path: '/',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'lax',
       },
     )
   },
