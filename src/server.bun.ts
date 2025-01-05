@@ -16,7 +16,7 @@ const addCors = (request: Request, response: Response) => {
     request.headers.get('origin') ||
       'http://this-is-definately-not-allowed.com',
   ).origin
-  if (allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes(origin) || origin.includes('lazy-tarot-mobile')) {
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     response.headers.set(
       'Access-Control-Allow-Headers',
