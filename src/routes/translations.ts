@@ -321,6 +321,14 @@ async function updateLocks() {
   return locks
 }
 
+const withError = async <T>(promise: Promise<T>) => {
+  try {
+    return [await promise, null] as const
+  } catch (error) {
+    return [null, { error }] as const
+  }
+}
+
 async function handleImport(
   request: Request,
   { language }: { language: string },
@@ -330,19 +338,39 @@ async function handleImport(
     request.headers.get('x-api-key') === env.AUTOMATION_API_KEY
   ) {
     try {
-      const extracted = await request.json()
-      const translations = await importTranslations(language, extracted)
-      const locks = await updateLocks()
-      server.get()?.publish(
-        'BROADCAST',
-        JSON.stringify({
-          type: 'IMPORT',
-          locks,
-          translations,
-        }),
+      const [extracted, extractionError] = await withError(request.json())
+      if (extractionError) {
+        console.error('Error getting json body', extractionError.error)
+        throw extractionError.error
+      }
+      const [translations, importError] = await withError(
+        importTranslations(language, extracted),
       )
+      if (importError) {
+        console.error('Error importing translations', importError.error)
+        throw importError.error
+      }
+      const [locks, updateLocksError] = await withError(updateLocks())
+      if (updateLocksError) {
+        console.error('Update locks error', updateLocksError.error)
+        throw updateLocksError.error
+      }
+      try {
+        server.get()?.publish(
+          'BROADCAST',
+          JSON.stringify({
+            type: 'IMPORT',
+            locks,
+            translations,
+          }),
+        )
+      } catch (publishError) {
+        console.error('Error broadcasting import', publishError)
+        throw publishError
+      }
       const [data, error] = jsonResponse(translations)
       if (error) {
+        console.error('getting json response error', error.error)
         throw error.error
       }
       return data
@@ -356,7 +384,8 @@ async function handleImport(
             locks,
           }),
         )
-      } catch {
+      } catch (broadcastError) {
+				console.error('Broadcast error on failed import', broadcastError)
         // do nothing
       }
       if (
