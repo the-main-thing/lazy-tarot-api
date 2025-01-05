@@ -33,6 +33,9 @@ const run = () => {
     port: env.PORT || 3000,
     async fetch(request) {
       try {
+        if (request.method === 'OPTIONS') {
+          return addCors(request, new Response())
+        }
         let response = await router(request)
         if (response === UPGRADE_CONNECTION_RESPONSE) {
           return undefined
