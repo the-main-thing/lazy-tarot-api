@@ -1,4 +1,3 @@
-import { randInt } from './cms/utils/number'
 import type { RouteData, RouteName, RouteResponses } from './routes/router'
 import type { TypedResponse } from './typedResponse.type'
 
@@ -70,7 +69,6 @@ export const createApiClient = ({
   apiKey,
   makeRequest,
 }: CreateApiClientParams) => {
-  let ready = Boolean(apiKey)
   apiRoot = apiRoot.endsWith('/')
     ? (apiRoot.slice(0, -1) as typeof apiRoot)
     : apiRoot
@@ -84,59 +82,18 @@ export const createApiClient = ({
       'x-api-key': apiKey || '',
     })
 
-  let initPromise: Promise<FetchJsonResponse<'/api/v1/init'>> | null = null
-
   const fetch = async <TPath extends RouteName>(
     routeName: TPath,
     params: GetParams<TPath>,
     init?: Init,
   ): Promise<Response> => {
-    if (routeName === '/api/v1/init') {
-      const promise = initPromise
-        ? initPromise
-        : makeRequest(apiRoot + injectParams(routeName, params), init).then(
-            (r) => {
-              ready = true
-              if (promise === initPromise) {
-                initPromise = null
-              }
-              return r
-            },
-          )
-      initPromise = promise
-      return promise
-    }
-    if (!ready && !initPromise) {
-      let status = 1000
-      while (status >= 400) {
-        const response = await fetch(
-          '/api/v1/init',
-          {},
-          {
-            method: 'GET',
-            headers: headers(),
-          },
-        )
-        void response
-          .text()
-          .then(() => void 0)
-          .catch(() => void 0)
-        status = response.status
-        if (status >= 400) {
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => {
-                resolve()
-              },
-              randInt(1000, 10000),
-            )
-          })
-        }
-      }
-    }
     const response = await makeRequest(
       apiRoot + injectParams(routeName, params),
-      init,
+      init || {
+        headers: new Headers({
+          'x-api-key': apiKey || '',
+        }),
+      },
     )
     if (response.status >= 400) {
       throw new ApiClientError(
