@@ -77,10 +77,12 @@ export const createApiClient = ({
   // validate url
   void new URL(apiRoot)
 
-  const headers = new Headers({
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  })
+  const headers = () =>
+    new Headers({
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey || '',
+    })
 
   let initPromise: Promise<FetchJsonResponse<'/api/v1/init'>> | null = null
 
@@ -112,7 +114,7 @@ export const createApiClient = ({
           {},
           {
             method: 'GET',
-            headers,
+            headers: headers(),
           },
         )
         void response
@@ -154,18 +156,15 @@ export const createApiClient = ({
   }
 
   const setApiKey = (newApiKey?: string) => {
-    const key = newApiKey || apiKey
-    if (key) {
-      headers.set('x-api-key', key)
-    }
+    apiKey = newApiKey || apiKey
   }
 
   setApiKey(apiKey)
 
-  const getRequestInit: Init = {
+  const getRequestInit: () => Init = () => ({
     method: 'GET',
-    headers,
-  }
+    headers: headers(),
+  })
 
   const init = async () => {
     return await fetchJson('/api/v1/init', getRequestInit).then((r) => r.json())
@@ -175,7 +174,7 @@ export const createApiClient = ({
     return await fetchJson(
       '/api/v1/get-all-pages/:language',
       { language },
-      getRequestInit,
+      getRequestInit(),
     ).then((r) => r.json())
   }
 
@@ -191,7 +190,7 @@ export const createApiClient = ({
     return await fetchJson(
       '/api/v1/get-cards-set/:language',
       { language },
-      getRequestInit,
+      getRequestInit(),
     ).then((r) => r.json())
   }
 
@@ -201,7 +200,7 @@ export const createApiClient = ({
     return await fetchJson(
       '/api/v1/get-card-by-id/:language/:id',
       params,
-      getRequestInit,
+      getRequestInit(),
     ).then((r) => r.json())
   }
 
@@ -214,7 +213,7 @@ export const createApiClient = ({
       { language },
       {
         method: 'POST',
-        headers: headers,
+        headers: headers(),
         body: JSON.stringify({
           prevPickedCards: previouslyPickedCards,
         }),
@@ -223,13 +222,15 @@ export const createApiClient = ({
   }
 
   const getTranslations = async () => {
-    return await fetchJson('/api/v1/translations/get', {}, getRequestInit).then(
-      (r) => r.json(),
-    )
+    return await fetchJson(
+      '/api/v1/translations/get',
+      {},
+      getRequestInit(),
+    ).then((r) => r.json())
   }
 
   const updateTranslations = async (formData: FormData) => {
-    const formDataHeaders = new Headers(headers)
+    const formDataHeaders = new Headers(headers())
     formDataHeaders.set('Content-Type', 'application/x-www-form-urlencoded')
     return await fetch(
       '/api/v1/translations/update',
@@ -243,11 +244,11 @@ export const createApiClient = ({
   }
 
   const getTranslationsStatus = async () => {
-    return await fetch('/api/v1/translations/status', {}, getRequestInit)
+    return await fetch('/api/v1/translations/status', {}, getRequestInit())
   }
 
   const translationsLogin = async (formData: FormData) => {
-    const formDataHeaders = new Headers(headers)
+    const formDataHeaders = new Headers(headers())
     formDataHeaders.set('Content-Type', 'application/x-www-form-urlencoded')
     return await fetch(
       '/login',
@@ -264,7 +265,7 @@ export const createApiClient = ({
 
   const getApiStatus = async () => {
     try {
-      await fetch('/api/v1/status', {}, getRequestInit)
+      await fetch('/api/v1/status', {}, getRequestInit())
       return 'server-up'
     } catch (error) {
       if (error instanceof ApiClientError) {
@@ -289,7 +290,7 @@ export const createApiClient = ({
       { language },
       {
         method: 'POST',
-        headers,
+        headers: headers(),
         body: extracted,
       },
     ).then((r) => r.json())
