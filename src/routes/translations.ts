@@ -340,19 +340,19 @@ async function handleImport(
     try {
       const [extracted, extractionError] = await withError(request.json())
       if (extractionError) {
-        console.error('Error getting json body', extractionError.error)
+        log.error('Error getting json body', extractionError.error)
         throw extractionError.error
       }
       const [translations, importError] = await withError(
         importTranslations(language, extracted),
       )
       if (importError) {
-        console.error('Error importing translations', importError.error)
+        log.error('Error importing translations', importError.error)
         throw importError.error
       }
       const [locks, updateLocksError] = await withError(updateLocks())
       if (updateLocksError) {
-        console.error('Update locks error', updateLocksError.error)
+        log.error('Update locks error', updateLocksError.error)
         throw updateLocksError.error
       }
       try {
@@ -365,12 +365,12 @@ async function handleImport(
           }),
         )
       } catch (publishError) {
-        console.error('Error broadcasting import', publishError)
+        log.error('Error broadcasting import', publishError)
         throw publishError
       }
       const [data, error] = jsonResponse(translations)
       if (error) {
-        console.error('getting json response error', error.error)
+        log.error('getting json response error', error.error)
         throw error.error
       }
       return data
@@ -385,7 +385,7 @@ async function handleImport(
           }),
         )
       } catch (broadcastError) {
-				console.error('Broadcast error on failed import', broadcastError)
+				log.error('Broadcast error on failed import', broadcastError)
         // do nothing
       }
       if (
@@ -395,10 +395,10 @@ async function handleImport(
         typeof error.message === 'string' &&
         error.message
       ) {
-        console.error(`Error importing translations: ${error.message}`)
+        log.error(`Error importing translations: ${error.message}`)
         throw new Response(error.message, { status: 500 })
       }
-      console.error('Unknown error importing translations', error)
+      log.error('Unknown error importing translations', error)
       throw new Response('Internal Server Error', { status: 500 })
     }
   }
