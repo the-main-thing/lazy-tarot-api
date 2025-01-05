@@ -23,6 +23,7 @@ const addCors = (request: Request, response: Response) => {
       'Content-Type, Authorization, x-api-key, cookie',
     )
     response.headers.set('Access-Control-Allow-Origin', origin)
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
     response.headers.set('Transfer-Encoding', 'chunked')
   }
   return response
