@@ -2,7 +2,7 @@ import cookie from 'cookie'
 import { randInt } from '../cms/utils/number'
 
 const sessionCookieKey =
-  process.env.NODE_ENV !== 'development_____' ? 'session' : '__Secure-Session'
+  process.env.NODE_ENV !== 'development' ? 'session' : '__Secure-Session'
 
 const secrets = Array(10)
   .fill('')
@@ -14,7 +14,13 @@ export const session = {
       return false
     }
     const sessionId = cookie.parse(cookieHeader)?.[sessionCookieKey]
+    if (!sessionId) {
+      return secrets.includes(cookieHeader as never)
+    }
     return secrets.includes(sessionId as never)
+  },
+  getKey: () => {
+    return secrets[randInt(0, secrets.length - 1)]!
   },
   create: () => {
     return cookie.serialize(

@@ -7,19 +7,11 @@ import { session } from './session'
 
 export const init = (context: Context) => {
   if (context.request.method.toUpperCase() === 'GET') {
-    const [response, error] = jsonResponse(
-      {
-        SUPPORTED_LANGUAGES,
-        defaultLanguage,
-      },
-      {
-        headers: !session.isValid(context.request.headers.get('cookie'))
-          ? {
-              'Set-Cookie': session.create(),
-            }
-          : undefined,
-      },
-    )
+    const [response, error] = jsonResponse({
+      SUPPORTED_LANGUAGES,
+      defaultLanguage,
+      key: session.getKey(),
+    })
     if (!response || error) {
       throw (
         error ||
