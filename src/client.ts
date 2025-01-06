@@ -186,6 +186,14 @@ export const createApiClient = ({
     ).then((r) => r.json())
   }
 
+  const getTranslationsCompiled = async () => {
+    return await fetchJson(
+      '/api/v1/translations/get/compiled',
+      {},
+      getRequestInit(),
+    ).then((r) => r.json())
+  }
+
   const updateTranslations = async (formData: FormData) => {
     const formDataHeaders = new Headers(headers())
     formDataHeaders.set('Content-Type', 'application/x-www-form-urlencoded')
@@ -260,6 +268,7 @@ export const createApiClient = ({
     getCardById,
     getRandomCard,
     getTranslations,
+    getTranslationsCompiled,
     updateTranslations,
     importTranslations,
     getTranslationsStatus,

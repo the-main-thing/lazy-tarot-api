@@ -1,7 +1,16 @@
-import { db } from './db'
-import { SUPPORTED_LANGUAGES } from '../cms/sanity/constants'
 import { eq } from 'drizzle-orm'
-import { translationsContent, translationsAdmins } from './schema'
+import path from 'path'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import { compile } from '@formatjs/cli-lib'
+
+import { db } from './db'
+import { SUPPORTED_LANGUAGES, defaultLanguage } from '../cms/sanity/constants'
+import {
+  translationsContent,
+  translationsAdmins,
+  translationsCompiled,
+} from './schema'
 
 const TRANSLATIONS_KEY = 'translations' as const
 
@@ -108,18 +117,21 @@ const getTranslationsCache = () => {
       () => translation,
     )
     const value = JSON.stringify(translations)
-    await db
-      .insert(translationsContent)
-      .values({
-        key: TRANSLATIONS_KEY,
-        value,
-      })
-      .onConflictDoUpdate({
-        target: translationsContent.key,
-        set: {
+    await Promise.all([
+      db
+        .insert(translationsContent)
+        .values({
+          key: TRANSLATIONS_KEY,
           value,
-        },
-      })
+        })
+        .onConflictDoUpdate({
+          target: translationsContent.key,
+          set: {
+            value,
+          },
+        }),
+      compileTranslations(translations),
+    ])
 
     scheduleGC()
   }
@@ -147,7 +159,9 @@ const getTranslationsCache = () => {
       )
       translations[key] = translation
     }
-    for (const key of Object.keys(translations) as Array<keyof typeof translations>) {
+    for (const key of Object.keys(translations) as Array<
+      keyof typeof translations
+    >) {
       if (key in extracted) {
         continue
       }
@@ -155,18 +169,21 @@ const getTranslationsCache = () => {
     }
 
     const value = JSON.stringify(translations)
-    await db
-      .insert(translationsContent)
-      .values({
-        key: TRANSLATIONS_KEY,
-        value,
-      })
-      .onConflictDoUpdate({
-        target: translationsContent.key,
-        set: {
+    await Promise.all([
+      db
+        .insert(translationsContent)
+        .values({
+          key: TRANSLATIONS_KEY,
           value,
-        },
-      })
+        })
+        .onConflictDoUpdate({
+          target: translationsContent.key,
+          set: {
+            value,
+          },
+        }),
+      compileTranslations(translations),
+    ])
 
     scheduleGC()
     return translations
@@ -259,3 +276,99 @@ const createSessions = () => {
 }
 
 export const { isValidSession, setSession } = createSessions()
+
+async function compileTranslations(translationsObject: Translations) {
+  const byLanguage = new Map<
+    string,
+    { [key: string]: { defaultMessage: string; description: string } }
+  >()
+
+  for (const [key, { description, translations }] of Object.entries(
+    translationsObject,
+  )) {
+    for (const { lang, message } of translations) {
+      const current = byLanguage.get(lang)
+      if (!current) {
+        byLanguage.set(lang, {
+          [key]: { defaultMessage: message, description },
+        })
+      } else {
+        current[key] = { defaultMessage: message, description }
+      }
+    }
+  }
+  const defaultLanguageTranslations = byLanguage.get(defaultLanguage)
+  if (!defaultLanguageTranslations) {
+    console.error(
+      `No translations found for default language "${defaultLanguage}"`,
+    )
+    process.exit(1)
+  }
+  const promises = Array(byLanguage.size)
+  let index = 0
+  for (const [lang, extracted] of byLanguage.entries()) {
+    for (const key of Object.keys(extracted)) {
+      extracted[key]!.defaultMessage =
+        extracted[key]!.defaultMessage ||
+        defaultLanguageTranslations[key]!.defaultMessage
+    }
+    const filePath = path.join(os.tmpdir(), `format-js-${lang}.json`)
+
+    promises[index] = fs
+      .writeFile(filePath, JSON.stringify(extracted), 'utf-8')
+      .then(() => {
+        return compile([filePath], {
+          ast: true,
+        })
+      })
+      .then((compiled) => {
+        return db
+          .insert(translationsCompiled)
+          .values({
+            key: lang,
+            value: compiled,
+          })
+          .onConflictDoUpdate({
+            target: translationsCompiled.key,
+            set: {
+              value: compiled,
+            },
+          })
+      })
+      .then(() => {
+        return Promise.all([fs.unlink(filePath)])
+      })
+    index += 1
+  }
+
+  await Promise.all(promises)
+}
+
+type Compiled = {
+  key: string
+  value: string
+}
+
+export const getCompiledTranslations = async (
+  isRetrying = false,
+): Promise<
+  [[Compiled, ...Array<Compiled>], null] | [null, { error: unknown }]
+> => {
+  try {
+    const data = await db.query.translationsCompiled.findMany()
+    if (!data?.length) {
+      if (isRetrying) {
+        throw new Error('There is no translations in the database')
+      }
+      const translatsions = await getTranslations()
+      await compileTranslations(translatsions)
+      return getCompiledTranslations(true)
+    }
+    return [
+      data as [(typeof data)[number], ...Array<(typeof data)[number]>],
+      null,
+    ] as const
+  } catch (error) {
+    return [null, { error }] as const
+  }
+}

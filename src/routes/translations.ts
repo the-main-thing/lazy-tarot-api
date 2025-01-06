@@ -9,6 +9,7 @@ import {
   authenticate,
   isValidSession,
   setSession,
+  getCompiledTranslations,
 } from '../db/translations'
 import { env } from '../env'
 import { log } from '../cms/utils/log'
@@ -64,6 +65,8 @@ const serializeSessionCookie = (login: string) => {
 }
 
 export const translationsRoutesConfig = {
+  ['/api/v1/translations/get/compiled']: (context) =>
+    handleGetTranslationsCompiled(context.request),
   ['/api/v1/translations/get']: (context) =>
     handleGetTranslations(context.request),
   ['/api/v1/translations/status']: (context) => {
@@ -385,7 +388,7 @@ async function handleImport(
           }),
         )
       } catch (broadcastError) {
-				log.error('Broadcast error on failed import', broadcastError)
+        log.error('Broadcast error on failed import', broadcastError)
         // do nothing
       }
       if (
@@ -416,6 +419,28 @@ const canGetTranslations = (headers: Headers): boolean => {
     session.isValid(headers.get('cookie')) ||
     session.isValid(headers.get('x-api-key'))
   )
+}
+
+async function handleGetTranslationsCompiled(request: Request) {
+  if (request.method === 'GET') {
+    if (!canGetTranslations(request.headers)) {
+      throw new Response('Unauthorized', { status: 401 })
+    }
+    const [translations, errorGettingTranslations] =
+      await getCompiledTranslations()
+    if (errorGettingTranslations) {
+      log.error(
+        'Error getting compiled translations',
+        errorGettingTranslations.error,
+      )
+      throw errorGettingTranslations.error
+    }
+    const [data, error] = jsonResponse(translations)
+    if (error) {
+      throw error.error
+    }
+    return data
+  }
 }
 
 async function handleGetTranslations(request: Request) {

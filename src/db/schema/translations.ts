@@ -14,3 +14,11 @@ export const translationsContent = sqliteTable('translations_content', {
   value: text().notNull(),
 })
 
+/**
+ * key: language
+ * value: compiled json
+ */
+export const translationsCompiled = sqliteTable('translations_compiled', {
+  key: text().notNull().primaryKey(),
+  value: text().notNull(),
+})
