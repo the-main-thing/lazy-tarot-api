@@ -345,15 +345,12 @@ async function compileTranslations(translationsObject: Translations) {
 }
 
 type Compiled = {
-  key: string
-  value: string
+  [key: string]: unknown
 }
 
 export const getCompiledTranslations = async (
   isRetrying = false,
-): Promise<
-  [[Compiled, ...Array<Compiled>], null] | [null, { error: unknown }]
-> => {
+): Promise<[Compiled, null] | [null, { error: unknown }]> => {
   try {
     const data = await db.query.translationsCompiled.findMany()
     if (!data?.length) {
@@ -364,10 +361,11 @@ export const getCompiledTranslations = async (
       await compileTranslations(translatsions)
       return getCompiledTranslations(true)
     }
-    return [
-      data as [(typeof data)[number], ...Array<(typeof data)[number]>],
-      null,
-    ] as const
+    const result = {} as Compiled
+    for (const record of data) {
+      result[record.key] = JSON.parse(record.value)
+    }
+    return [result, null] as const
   } catch (error) {
     return [null, { error }] as const
   }
